@@ -1,0 +1,40 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up JDK 8
+      uses: actions/setup-java@v2
+      with:
+        distribution: 'adopt'
+        java-version: '8'
+
+    - name: Create SSH directory
+      run: mkdir -p ~/.ssh
+  
+    - name: Add server to known_hosts
+      run: |
+        ssh-keyscan 68.233.114.39 >> ~/.ssh/known_hosts
+
+    - name: Build with Maven
+      run: mvn package
+
+    # - name: Copy files via SCP
+    #   env:
+    #     DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+    #   run: |
+    #     echo "${{ secrets.DEPLOY_KEY }}" > deploy_key
+    #     chmod 600 deploy_key
+    #     scp -i  deploy_key target/*.war ubuntu@68.233.114.39:/tmp/   && ssh -i deploy_key ubuntu@68.233.114.39 sudo mv -f /tmp/*.war /opt/tomcat/webapps/
+    # - name: Clean up
+    #   run: rm deploy_key

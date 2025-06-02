@@ -1,0 +1,57 @@
+.scrollbar-container .ps__rail-y:hover > .ps__thumb-y,
+.scrollbar-container .ps__rail-y:focus > .ps__thumb-y,
+.scrollbar-container .ps__rail-y.ps--clicking .ps__thumb-y {
+    width: 5px;
+}
+
+.scrollbar-container .ps__rail-x:hover > .ps__thumb-x,
+.scrollbar-container .ps__rail-x:focus > .ps__thumb-x,
+.scrollbar-container .ps__rail-x.ps--clicking .ps__thumb-x {
+    height: 5px;
+}
+
+.scrollbar-container .ps__thumb-y {
+    border-radius: 10px;
+    width: 5px;
+    right: 0;
+}
+
+.scrollbar-container .ps__thumb-x {
+    border-radius: 10px;
+    height: 5px;
+    bottom: 0;
+}
+
+.scrollbar-container.ps.ps--active-y > .ps__rail-y,
+.scrollbar-container > .ps.ps--active-y > .ps__rail-y {
+    width: 5px;
+    background-color: transparent !important;
+    z-index: 999;
+}
+
+.scrollbar-container.ps.ps--active-x > .ps__rail-x,
+.scrollbar-container > .ps.ps--active-x > .ps__rail-x {
+    height: 5px;
+    background-color: transparent !important;
+    z-index: 999;
+}
+
+.scrollbar-container.ps.ps--active-y > .ps__rail-y:hover,
+.scrollbar-container .ps.ps--active-y > .ps__rail-y.ps--clicking {
+    width: 5px;
+    background-color: transparent;
+}
+
+.scrollbar-container.ps.ps--active-x > .ps__rail-x:hover,
+.scrollbar-container .ps.ps--active-x > .ps__rail-x.ps--clicking {
+    height: 5px;
+    background-color: transparent;
+}
+
+.scrollbar-container.ps.ps--scrolling-y > .ps__rail-y,
+.scrollbar-container.ps.ps--scrolling-x > .ps__rail-x,
+.scrollbar-container > .ps.ps--scrolling-y > .ps__rail-y,
+.scrollbar-container > .ps.ps--scrolling-x > .ps__rail-x {
+    opacity: 0.4;
+    background-color: transparent;
+}
