@@ -4,7 +4,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.HashMap;
 
-import com.hionstudios.app.model.Oauth;
+import com.hionstudios.mypersonalinvite.model.Oauth;
 import com.nimbusds.oauth2.sdk.token.RefreshToken;
 
 /**

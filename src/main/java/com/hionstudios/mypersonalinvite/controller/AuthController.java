@@ -1,4 +1,4 @@
-package com.hionstudios.app.controller;
+package com.hionstudios.mypersonalinvite.controller;
 
 import javax.annotation.security.PermitAll;
 import javax.servlet.http.HttpServletResponse;

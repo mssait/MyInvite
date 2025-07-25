@@ -1,4 +1,4 @@
-package com.hionstudios.app.controller;
+package com.hionstudios.mypersonalinvite.controller;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;

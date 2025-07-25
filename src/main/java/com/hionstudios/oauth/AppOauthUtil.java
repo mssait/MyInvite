@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 
 import com.hionstudios.MapResponse;
-import com.hionstudios.app.model.Oauth;
+import com.hionstudios.mypersonalinvite.model.Oauth;
 
 /**
  * @author Karthikeyan K

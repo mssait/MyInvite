@@ -1,4 +1,4 @@
-package com.hionstudios.app.model;
+package com.hionstudios.mypersonalinvite.model;
 
 import org.javalite.activejdbc.Model;
 
