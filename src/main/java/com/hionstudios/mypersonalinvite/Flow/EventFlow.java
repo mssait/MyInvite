@@ -10,6 +10,7 @@ import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
 import com.hionstudios.mypersonalinvite.model.Event;
+import com.hionstudios.mypersonalinvite.model.EventBudget;
 import com.hionstudios.mypersonalinvite.model.EventGuest;
 import com.hionstudios.mypersonalinvite.model.EventThumbnail;
 import com.hionstudios.mypersonalinvite.model.User;
@@ -117,7 +118,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct jsonb_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct jsonb_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? Group By Events.Id Order By Events.Date Desc";
 
         List<MapResponse> events = Handler.findAll(sql_1, userId);
 
@@ -181,6 +182,63 @@ public class EventFlow {
         guest.saveIt();
         return MapResponse.success("RSVP submitted");
 
+    }
+
+    public MapResponse addBudget(long id, long budget_type_id, String amount, String description) {
+        EventBudget budget = new EventBudget();
+        budget.set("event_id", id);
+        budget.set("budget_type_id", budget_type_id);
+        budget.set("description", description);
+        budget.set("amount", amount);
+        budget.insert();
+        return MapResponse.success("Budget item added");
+    }
+
+    public MapResponse updateBudget(long id, Long budget_type_id, String amount, String description) {
+        EventBudget budget = EventBudget.findById(id);
+        if (budget == null)
+            return MapResponse.failure("Budget item not found");
+
+        if (budget_type_id != null)
+            budget.set("budget_type_id", budget_type_id);
+        if (description != null)
+            budget.set("description", description);
+        if (amount != null)
+            budget.set("amount", amount);
+
+        return budget.saveIt() ? MapResponse.success("Budget item updated") : MapResponse.failure();
+    }
+
+    public MapResponse deleteBudget(long id) {
+        EventBudget budget = EventBudget.findById(id);
+        if (budget == null)
+            return MapResponse.failure("Budget item not found");
+        budget.delete();
+        return MapResponse.success("Budget item deleted");
+    }
+
+    public MapResponse getUpcomingEvents() {
+        String sql = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Completed = ? Group By Events.Id Order By Events.Date Desc";
+
+        List<MapResponse> events = Handler.findAll(sql, false);
+        MapResponse response = new MapResponse().put("UpcomingEvents", events);
+        return response;
+    }
+
+    public MapResponse getCompletedEvents() {
+        String sql = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Completed = ? Group By Events.Id Order By Events.Date Desc";
+
+        List<MapResponse> events = Handler.findAll(sql, true);
+        MapResponse response = new MapResponse().put("CompletedEvents", events);
+        return response;
+    }
+
+    public MapResponse getGuestList(long id) {
+        String sql = "Select Event_Guests.* Users.Name, Users.Phone_Nummber, Users.Profile_Pic From Event_Guests Join Users On Users.Id = Event_Guests.Guest_Id Where Event_Guests.Event_Id =? Order By Event_Guests.Created_Time Desc";
+
+        List<MapResponse> guest = Handler.findAll(sql, id);
+        MapResponse response = new MapResponse().put("GuestList", guest);
+        return response;
     }
 
 }

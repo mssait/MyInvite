@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -73,14 +74,59 @@ public class EventController {
     }
 
     @PutMapping("{id}/rsvp")
-    public ResponseEntity <MapResponse> rsvpEvent(
-        @PathVariable int id,
-        @RequestParam String rsvp,
-        @RequestParam(required = false) int no_of_attendees,
-        @RequestParam(required = false) String comment,
-        @RequestParam(required = false) boolean carpool_expecting,
-        @RequestParam(required = false) Long carpool_guest_status_id){
-            return((DbTransaction) () -> new EventFlow().rsvpEvent(id, rsvp, no_of_attendees, comment, carpool_expecting, carpool_guest_status_id)).write();
-        }
+    public ResponseEntity<MapResponse> rsvpEvent(
+            @PathVariable int id,
+            @RequestParam String rsvp,
+            @RequestParam(required = false) int no_of_attendees,
+            @RequestParam(required = false) String comment,
+            @RequestParam(required = false) boolean carpool_expecting,
+            @RequestParam(required = false) Long carpool_guest_status_id) {
+        return ((DbTransaction) () -> new EventFlow().rsvpEvent(id, rsvp, no_of_attendees, comment, carpool_expecting,
+                carpool_guest_status_id)).write();
+    }
+
+    @PostMapping("{id}/budget/add")
+    @IsUser
+    public ResponseEntity<MapResponse> addBudget(
+            @PathVariable long id,
+            @RequestParam long budget_type_id,
+            @RequestParam String amount,
+            @RequestParam(required = false) String description) {
+        return ((DbTransaction) () -> new EventFlow().addBudget(id, budget_type_id, amount, description)).write();
+    }
+
+    @PutMapping("update/{id}")
+    @IsUser
+    public ResponseEntity<MapResponse> updateBudget(
+            @PathVariable long id,
+            @RequestParam(required = false) String amount,
+            @RequestParam(required = false) Long budget_type_id,
+            @RequestParam(required = false) String description ) {
+        return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, amount, description)).write();
+    }
+
+    @DeleteMapping("budget/{id}/delete")
+    @IsUser
+    public ResponseEntity<MapResponse> deleteBudget(@PathVariable long id) {
+        return ((DbTransaction) () -> new EventFlow().deleteBudget(id)).write();
+    }
+
+    @GetMapping("upcoming")
+    @IsUser
+    public ResponseEntity<MapResponse> getUpcomingEvents(){
+        return ((DbTransaction) () -> new EventFlow().getUpcomingEvents()).read();
+    }
+
+    @GetMapping("completed")
+    @IsUser
+    public ResponseEntity<MapResponse> getCompletedEvents(){
+        return ((DbTransaction) () -> new EventFlow().getCompletedEvents()).read();
+    }
+
+    @GetMapping("{id}/guest-list")
+    @IsUser
+    public ResponseEntity<MapResponse> getGuestList(@PathVariable long id){
+        return ((DbTransaction) () -> new EventFlow().getGuestList(id)).read();
+    }
 
 }
