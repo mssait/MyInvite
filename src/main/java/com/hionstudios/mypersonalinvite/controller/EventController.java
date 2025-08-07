@@ -65,7 +65,7 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().getEventsForOwners()).write();
     }
 
-    @PostMapping("{id}/add-event-guest")
+    @PostMapping("{id}/add-guest-list")
     @IsUser
     public ResponseEntity<MapResponse> addEventGuest(
             @PathVariable int id,
@@ -86,7 +86,7 @@ public class EventController {
                 carpool_guest_status_id)).write();
     }
 
-    @PostMapping("{id}/budget/add")
+    @PostMapping("{id}/add-budget")
     @IsUser
     public ResponseEntity<MapResponse> addBudget(
             @PathVariable long id,
@@ -96,7 +96,7 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().addBudget(id, budget_type_id, amount, description)).write();
     }
 
-    @PutMapping("update/{id}")
+    @PutMapping("edit-budget/{id}")
     @IsUser
     public ResponseEntity<MapResponse> updateBudget(
             @PathVariable long id,
@@ -106,7 +106,7 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, amount, description)).write();
     }
 
-    @DeleteMapping("budget/{id}/delete")
+    @DeleteMapping("delete-budget/{id}")
     @IsUser
     public ResponseEntity<MapResponse> deleteBudget(@PathVariable long id) {
         return ((DbTransaction) () -> new EventFlow().deleteBudget(id)).write();

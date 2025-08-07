@@ -17,7 +17,7 @@ import com.hionstudios.mypersonalinvite.Flow.UserFlow;
 @RestController
 @RequestMapping("api/user")
 public class UserController {
-    @GetMapping()
+    @GetMapping("view")
     @IsAdmin
     public ResponseEntity<MapResponse> users() {
         return ((DbTransaction) () -> new UserFlow().getUsers()).read();

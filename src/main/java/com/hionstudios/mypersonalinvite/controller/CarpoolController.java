@@ -1,6 +1,7 @@
 package com.hionstudios.mypersonalinvite.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +19,7 @@ import com.hionstudios.mypersonalinvite.Flow.CarpoolFlow;
 @RequestMapping("api/carpool")
 public class CarpoolController {
 
-    @PostMapping("add/{event_id}")
+    @PostMapping("event/{id}/add")
     @IsUser
     public ResponseEntity<MapResponse> addCarpool(
             @PathVariable int event_id,
@@ -66,7 +67,7 @@ public class CarpoolController {
 
     }
 
-    @PutMapping("request/{id}/delete")
+    @DeleteMapping("request/{id}/delete")
     @IsUser
     public ResponseEntity<MapResponse> deleteCarpoolRequest(
             @PathVariable int id) {
@@ -93,7 +94,7 @@ public class CarpoolController {
         return ((DbTransaction) () -> new CarpoolFlow().respondToCarpoolRequest(id, response)).write();
     }
 
-    @GetMapping("view/{event_id}")
+    @GetMapping("event/{id}")
     @IsUser
     public ResponseEntity<MapResponse> viewCarpool(
             @PathVariable int event_id) {
