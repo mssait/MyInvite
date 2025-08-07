@@ -69,17 +69,18 @@ public class EventController {
     @IsUser
     public ResponseEntity<MapResponse> addEventGuest(
             @PathVariable int id,
-            @RequestBody List<Map<String, String>> guestList) {
-        return ((DbTransaction) () -> new EventFlow().postEventGuest(id, guestList)).write();
+            @RequestParam(required = false) List<String> emailList,
+            @RequestBody(required = false) List<Map<String, String>> guestList) {
+        return ((DbTransaction) () -> new EventFlow().postEventGuest(id, emailList,  guestList)).write();
     }
 
     @PutMapping("{id}/rsvp")
     public ResponseEntity<MapResponse> rsvpEvent(
             @PathVariable int id,
             @RequestParam String rsvp,
-            @RequestParam(required = false) int no_of_attendees,
+            @RequestParam int no_of_attendees,
             @RequestParam(required = false) String comment,
-            @RequestParam(required = false) boolean carpool_expecting,
+            @RequestParam boolean carpool_expecting,
             @RequestParam(required = false) Long carpool_guest_status_id) {
         return ((DbTransaction) () -> new EventFlow().rsvpEvent(id, rsvp, no_of_attendees, comment, carpool_expecting,
                 carpool_guest_status_id)).write();
