@@ -12,7 +12,7 @@ import com.hionstudios.mypersonalinvite.model.CarpoolRequest;
 
 public class CarpoolFlow {
 
-    public MapResponse postCarpool(int event_id, String car_model, String car_number, String car_color,
+    public MapResponse postCarpool(Long event_id, String car_model, String car_number, String car_color,
             int available_seats, boolean ladies_accompanied, String start_location, String start_date_time,
             String end_date_time, String notes) {
 
@@ -33,7 +33,41 @@ public class CarpoolFlow {
         return carpool.insert() ? MapResponse.success() : MapResponse.failure("Failed to create carpool");
     }
 
-    public MapResponse putCarpool(int id, String car_model, String car_number, String car_color,
+    public MapResponse getCarpoolDetails(Long id) {
+        String sql = "Select * From Carpool Where id = ?";
+        MapResponse carpoolDetails = Handler.findFirst(sql, id);
+        if (carpoolDetails == null) {
+            return MapResponse.failure("Carpool not found");
+        }
+        return new MapResponse().put("carpool", carpoolDetails);
+    }
+
+    public MapResponse deleteCarpool(Long id) {
+        Carpool carpool = Carpool.findById(id);
+        if (carpool != null) {
+            carpool.delete();
+            return MapResponse.success();
+        } else {
+            return MapResponse.failure("Carpool not found");
+        }
+    }
+
+    public MapResponse viewCarpoolRequest(Long id) {
+        String sql = "Select * From Carpool_Requests Where id = ?";
+        MapResponse requests = Handler.findFirst(sql, id);
+        if (requests == null) {
+            return MapResponse.failure("Carpool request not found");
+        }
+        return new MapResponse().put("request", requests);
+    }
+
+    public MapResponse viewCarpoolRequestDetails(Long id) {
+        String sql = "Select * From Carpool_Requests Where carpool_id = ?";
+        List<MapResponse> requests = Handler.findAll(sql, id);
+        return new MapResponse().put("requests", requests);
+    }
+
+    public MapResponse putCarpool(Long id, String car_model, String car_number, String car_color,
             int available_seats, boolean ladies_accompanied, String start_location, String start_date_time,
             String end_date_time, String notes) {
 
@@ -51,7 +85,7 @@ public class CarpoolFlow {
         return carpool.save() ? MapResponse.success() : MapResponse.failure("Failed to create carpool");
     }
 
-    public MapResponse postCarpoolRequest(int id, String no_of_people, boolean ladies_accompanied,
+    public MapResponse postCarpoolRequest(Long id, String no_of_people, boolean ladies_accompanied,
             String notes) {
 
         Long user_id = UserUtil.getUserid();
@@ -66,7 +100,7 @@ public class CarpoolFlow {
         return request.insert() ? MapResponse.success() : MapResponse.failure("Failed to create carpool request");
     }
 
-    public MapResponse deleteCarpoolRequest(int id) {
+    public MapResponse deleteCarpoolRequest(Long id) {
         CarpoolRequest request = CarpoolRequest.findById(id);
         if (request != null) {
             request.delete();
@@ -76,7 +110,7 @@ public class CarpoolFlow {
         }
     }
 
-    public MapResponse putCarpoolRequest(int id, String no_of_people, boolean ladies_accompanied,
+    public MapResponse putCarpoolRequest(Long id, String no_of_people, boolean ladies_accompanied,
             String notes) {
 
         CarpoolRequest request = CarpoolRequest.findById(id);
@@ -87,14 +121,14 @@ public class CarpoolFlow {
         return request.save() ? MapResponse.success() : MapResponse.failure("Failed to create carpool request");
     }
 
-    public MapResponse respondToCarpoolRequest(int id, boolean response) {
+    public MapResponse respondToCarpoolRequest(Long id, boolean response) {
         CarpoolRequest request = CarpoolRequest.findById(id);
         if (response) {
             request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
 
             CarpoolGuest guest = new CarpoolGuest();
-            guest.set("carpool_id", request.get("carpool_id"));
-            guest.set("guest_id", request.get("guest_id"));
+            guest.set("carpool_id", request.getLong("carpool_id"));
+            guest.set("Carpool_Request_id", request.getLong("id"));
             guest.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
             guest.insert();
 
@@ -105,7 +139,7 @@ public class CarpoolFlow {
 
     }
 
-    public MapResponse viewCarpool(int event_id) {
+    public MapResponse viewCarpool(Long event_id) {
 
         String sql = "Select * From Carpool Where event_id = ?";
 
@@ -114,4 +148,12 @@ public class CarpoolFlow {
         return response;
     }
 
+    public MapResponse viewCarpoolGuests(Long id) {
+        String sql = "Select Carpool_Guests.*, Carpool_Guest_Statuses.Status, Carpool_Requests.*, Users.Username, Users.Full_name From Carpool_Guests Inner Join Carpool_Requests On Carpool_Guests.Carpool_Request_id = Carpool_Requests.ID Inner Join Carpool_Guest_Statuses On Carpool_Guests.Carpool_Guest_Status_id = Carpool_Guest_Statuses.ID Inner Join Users On Carpool_Requests.Guest_id = Users.ID Where Carpool_Guests.Carpool_id = ?";
+        List<MapResponse> guests = Handler.findAll(sql, id);
+        if (guests.isEmpty()) {
+            return MapResponse.failure("No guests found for this carpool");
+        }
+        return new MapResponse().put("guests", guests);
+    }
 }

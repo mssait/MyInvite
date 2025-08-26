@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hionstudios.MapResponse;
-import com.hionstudios.MixMultipartFileAndString;
 import com.hionstudios.db.DbTransaction;
 import com.hionstudios.iam.IsAdmin;
 import com.hionstudios.mypersonalinvite.Flow.UserFlow;
@@ -23,23 +22,26 @@ public class UserController {
         return ((DbTransaction) () -> new UserFlow().getUsers()).read();
     }
 
+    @GetMapping("{id}/view-details")
+    @IsAdmin
+    public ResponseEntity<MapResponse> userDetails(@PathVariable Long id) {
+        return ((DbTransaction) () -> new UserFlow().getUserDetails(id)).read();
+    }
+
     @PostMapping("registration")
     public ResponseEntity<MapResponse> registration(
             @RequestParam String name,
-            @RequestParam String email,
-            @RequestParam String phone_number) {
-        return ((DbTransaction) () -> new UserFlow().addUser(name, email, phone_number)).write();
+            @RequestParam String phone_number,
+            @RequestParam String password) {
+        return ((DbTransaction) () -> new UserFlow().addUser(name, phone_number, password)).write();
     }
 
-    @PostMapping()
+    @PostMapping("{id}/change-status")
     @IsAdmin
     public ResponseEntity<MapResponse> editUsers(
-            @PathVariable int id,
-            String name, String email,
-            String phone_number,
-            @MixMultipartFileAndString Object profile_pic,
-            boolean is_active) {
-        return ((DbTransaction) () -> new UserFlow().editUsers(id, name, email, phone_number, profile_pic, is_active))
+            @PathVariable Long id,
+            @RequestParam(required = false)boolean is_active) {
+        return ((DbTransaction) () -> new UserFlow().editUsers(id, is_active))
                 .write();
     }
 

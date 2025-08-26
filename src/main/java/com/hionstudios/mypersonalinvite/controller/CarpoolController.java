@@ -22,7 +22,7 @@ public class CarpoolController {
     @PostMapping("event/{id}/add")
     @IsUser
     public ResponseEntity<MapResponse> addCarpool(
-            @PathVariable int event_id,
+            @PathVariable Long event_id,
             @RequestParam String car_model,
             @RequestParam String car_number,
             @RequestParam String car_color,
@@ -37,10 +37,34 @@ public class CarpoolController {
 
     }
 
+    @GetMapping("{id}/details")
+    @IsUser
+    public ResponseEntity<MapResponse> getCarpoolDetails(@PathVariable Long id) {
+        return ((DbTransaction) () -> new CarpoolFlow().getCarpoolDetails(id)).read();
+    }
+
+    @DeleteMapping("{id}/delete")
+    @IsUser
+    public ResponseEntity<MapResponse> deleteCarpool(@PathVariable Long id) {
+        return ((DbTransaction) () -> new CarpoolFlow().deleteCarpool(id)).write();
+    }
+
+    @GetMapping("request/{id}/details")
+    @IsUser
+    public ResponseEntity<MapResponse> getCarpoolRequestDetails(@PathVariable Long id) {
+        return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolRequest(id)).read();
+    }
+
+    @GetMapping("{id}/view-request")
+    @IsUser
+    public ResponseEntity<MapResponse> viewCarpoolRequest(@PathVariable Long id) {
+        return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolRequestDetails(id)).read();
+    }
+
     @PutMapping("{id}/edit")
     @IsUser
     public ResponseEntity<MapResponse> editCarpool(
-            @PathVariable int id,
+            @PathVariable Long id,
             @RequestParam(required = false) String car_model,
             @RequestParam(required = false) String car_number,
             @RequestParam(required = false) String car_color,
@@ -58,7 +82,7 @@ public class CarpoolController {
     @PostMapping("{id}/request")
     @IsUser
     public ResponseEntity<MapResponse> addCarpoolRequest(
-            @PathVariable int id,
+            @PathVariable Long id,
             @RequestParam String no_of_people,
             @RequestParam boolean ladies_accompanied,
             @RequestParam String notes) {
@@ -70,14 +94,14 @@ public class CarpoolController {
     @DeleteMapping("request/{id}/delete")
     @IsUser
     public ResponseEntity<MapResponse> deleteCarpoolRequest(
-            @PathVariable int id) {
+            @PathVariable Long id) {
         return ((DbTransaction) () -> new CarpoolFlow().deleteCarpoolRequest(id)).write();
     }
 
     @PutMapping("request/{id}/edit")
     @IsUser
     public ResponseEntity<MapResponse> editCarpoolRequest(
-            @PathVariable int id,
+            @PathVariable Long id,
             @RequestParam String no_of_people,
             @RequestParam boolean ladies_accompanied,
             @RequestParam String notes) {
@@ -89,7 +113,7 @@ public class CarpoolController {
     @PutMapping("request/{id}/respond")
     @IsUser
     public ResponseEntity<MapResponse> respondToCarpoolRequest(
-            @PathVariable int id,
+            @PathVariable Long id,
             @RequestParam boolean response) {
         return ((DbTransaction) () -> new CarpoolFlow().respondToCarpoolRequest(id, response)).write();
     }
@@ -97,8 +121,13 @@ public class CarpoolController {
     @GetMapping("event/{id}")
     @IsUser
     public ResponseEntity<MapResponse> viewCarpool(
-            @PathVariable int event_id) {
+            @PathVariable Long event_id) {
         return ((DbTransaction) () -> new CarpoolFlow().viewCarpool(event_id)).read();
     }
 
+    @GetMapping("{id}/guest")
+    @IsUser
+    public ResponseEntity<MapResponse> viewCarpoolGuests(@PathVariable Long id) {
+        return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolGuests(id)).read();
+    }
 }
