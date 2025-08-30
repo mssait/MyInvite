@@ -5,6 +5,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("api/notification")
-public class Notification {
+public class NotificationController {
     
 }

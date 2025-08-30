@@ -52,7 +52,6 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().getEventDetails(id)).read();
     }
 
-
     @GetMapping("{id}/guest-list")
     @IsAdmin
     public ResponseEntity<MapResponse> getEventGuestList(@PathVariable Long id) {
@@ -89,7 +88,7 @@ public class EventController {
                 start_time, end_time, address, gift_suggestion, latitude, longitude, thumbnail)).write();
     }
 
-    @PutMapping("{id}/edit")
+    @PutMapping("{id}/{guestIds}/edit")
     @IsUser
     public ResponseEntity<MapResponse> editEvent(
             @PathVariable Long id,

@@ -3,6 +3,7 @@ package com.hionstudios.mypersonalinvite.Flow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,6 +16,7 @@ import com.hionstudios.mypersonalinvite.model.EventInvite;
 import com.hionstudios.mypersonalinvite.model.EventThumbnail;
 import com.hionstudios.mypersonalinvite.model.EventTodoList;
 import com.hionstudios.mypersonalinvite.model.GuestRsvp;
+import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.oauth.WorkDrive;
 import com.hionstudios.oauth.WorkDrive.Folder;
@@ -124,7 +126,8 @@ public class EventFlow {
         return MapResponse.success();
     }
 
-    public MapResponse editEvent(Long id, int event_type_id, String title, String description, int no_of_guest,
+    public MapResponse editEvent(Long id, int event_type_id, String title, String description,
+            int no_of_guest,
             String date, String start_time, String end_time, String address, String gift_suggestion,
             double latitude, double longitude, List<Object> thumbnail) {
 
@@ -133,6 +136,9 @@ public class EventFlow {
             return MapResponse.failure("User not authenticated");
 
         Event event = Event.findById(id);
+        if (event == null)
+            return MapResponse.failure("Event not found");
+
         if (!event.getLong("owner_id").equals(userId))
             return MapResponse.failure("Not allowed");
 
@@ -147,7 +153,28 @@ public class EventFlow {
         event.set("gift_suggestion", gift_suggestion);
         event.set("latitude", latitude);
         event.set("longitude", longitude);
-        event.saveIt();
+        boolean isSaved = event.saveIt();
+
+        if (isSaved) {
+            List<Long> guestIds = Handler
+                    .findAll("Select Guest_Id From Event_Invites Where Event_Id = ? And Guest_Id Is Not Null", id)
+                    .stream()
+                    .map(map -> map.getLong("guest_id"))
+                    .collect(Collectors.toList());
+            if (guestIds != null && !guestIds.isEmpty()) {
+                for (Long guestId : guestIds) {
+                    com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
+                    notification.set("sender_id", userId);
+                    notification.set("receiver_id", guestId);
+                    notification.set("event_id", id);
+                    notification.set("notification_type_id", NotificationType.EVENT);
+                    notification.set("content", "The event '" + title + "' has been updated.");
+                    notification.set("is_read", false);
+                    notification.set("href", "/events/" + id);
+                    notification.insert();
+                }
+            }
+        }
 
         List<EventThumbnail> existingThumbs = EventThumbnail.where("event_id = ?", id);
         List<String> keepThumbIds = new ArrayList<>();
@@ -176,8 +203,8 @@ public class EventFlow {
                 WorkDrive.delete(thumbId);
                 thumb.delete();
             }
-            return MapResponse.success();
         }
+
         return MapResponse.success();
     }
 
@@ -256,7 +283,27 @@ public class EventFlow {
             }
             invite.delete();
         }
-        event.delete();
+        boolean isDeleted = event.delete();
+        if (isDeleted) {
+            List<Long> guestIds = Handler
+                    .findAll("Select Guest_Id From Event_Invites Where Event_Id = ? And Guest_Id Is Not Null", id)
+                    .stream()
+                    .map(map -> map.getLong("guest_id"))
+                    .collect(Collectors.toList());
+            if (guestIds != null && !guestIds.isEmpty()) {
+                for (Long guestId : guestIds) {
+                    com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
+                    notification.set("sender_id", userId);
+                    notification.set("receiver_id", guestId);
+                    notification.set("event_id", id);
+                    notification.set("notification_type_id", NotificationType.EVENT);
+                    notification.set("content", "The event '" + event.getString("title") + "' has been updated.");
+                    notification.set("is_read", false);
+                    notification.set("href", "/events/" + id);
+                    notification.insert();
+                }
+            }
+        }
 
         return MapResponse.success("Event deleted successfully");
     }
@@ -543,8 +590,27 @@ public class EventFlow {
             guestRsvp.set("carpool_guest_status_id", null);
         }
 
-        guestRsvp.saveIt();
+        boolean isSaved = guestRsvp.saveIt();
+        if(isSaved){
+            // Notify event owner
+            Event event = Event.findById(eventId);
+            if (event != null) {
+                Long ownerId = event.getLong("owner_id");
+                if (ownerId != null && !ownerId.equals(userId)) {
+                    com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
+                    notification.set("sender_id", userId);
+                    notification.set("receiver_id", ownerId);
+                    notification.set("event_id", eventId);
+                    notification.set("notification_type_id", NotificationType.RSVP);
+                    notification.set("content", user.getString("name") + " has RSVP'd to your event '" + event.getString("title") + "'.");
+                    notification.set("is_read", false);
+                    notification.set("href", "/events/" + eventId);
+                    notification.insert();
+                }
+            }
+        }
         return MapResponse.success("RSVP submitted");
+        
     }
 
     // public MapResponse postEventGuest(int eventId, List<Map<String, String>>

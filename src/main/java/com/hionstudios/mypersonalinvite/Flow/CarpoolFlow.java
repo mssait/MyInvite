@@ -9,6 +9,9 @@ import com.hionstudios.mypersonalinvite.model.Carpool;
 import com.hionstudios.mypersonalinvite.model.CarpoolGuest;
 import com.hionstudios.mypersonalinvite.model.CarpoolGuestStatus;
 import com.hionstudios.mypersonalinvite.model.CarpoolRequest;
+import com.hionstudios.mypersonalinvite.model.Notification;
+import com.hionstudios.mypersonalinvite.model.NotificationType;
+import com.hionstudios.mypersonalinvite.model.User;
 
 public class CarpoolFlow {
 
@@ -89,6 +92,11 @@ public class CarpoolFlow {
             String notes) {
 
         Long user_id = UserUtil.getUserid();
+
+        Carpool carpool = Carpool.findById(id);
+        if (carpool == null)
+            return MapResponse.failure("Carpool not found");
+
         CarpoolRequest request = new CarpoolRequest();
         request.set("carpool_id", id);
         request.set("guest_id", user_id);
@@ -97,7 +105,26 @@ public class CarpoolFlow {
         request.set("notes", notes);
         request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.PENDING));
 
-        return request.insert() ? MapResponse.success() : MapResponse.failure("Failed to create carpool request");
+        boolean isInserted = request.insert();
+        if (isInserted) {
+            // Notify event owner
+            Long ownerId = carpool.getLong("user_id");
+            Long eventId = carpool.getLong("event_id");
+            if (ownerId != null && !ownerId.equals(user_id) && eventId != null) {
+                User sender = User.findById(user_id);
+                String senderName = sender != null ? sender.getString("name") : "A user";
+                com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
+                notification.set("sender_id", user_id);
+                notification.set("receiver_id", ownerId);
+                notification.set("event_id", eventId);
+                notification.set("notification_type_id", NotificationType.CARPOOL);
+                notification.set("content", "You have a new carpool request from " + senderName);
+                notification.set("is_read", false);
+                notification.set("href", "/events/" + eventId + "/carpools/" + id);
+                notification.insert();
+            }
+        }
+        return isInserted ? MapResponse.success() : MapResponse.failure("Failed to create carpool request");
     }
 
     public MapResponse deleteCarpoolRequest(Long id) {
@@ -123,18 +150,44 @@ public class CarpoolFlow {
 
     public MapResponse respondToCarpoolRequest(Long id, boolean response) {
         CarpoolRequest request = CarpoolRequest.findById(id);
-        if (response) {
-            request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
+        Carpool carpool = Carpool.findById(request.getLong("carpool_id"));
+        int available_seats = carpool.getInteger("available_seats");
+        int filled_seats = carpool.getInteger("filled_seats");
+        int noOfPeople = request.getInteger("no_of_people");
+        int currentSeats = available_seats - filled_seats;
+        if (currentSeats <= noOfPeople) {
+            if (response) {
+                request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
+                CarpoolGuest guest = new CarpoolGuest();
+                guest.set("carpool_id", request.getLong("carpool_id"));
+                guest.set("Carpool_Request_id", request.getLong("id"));
+                guest.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
+                guest.insert();
 
-            CarpoolGuest guest = new CarpoolGuest();
-            guest.set("carpool_id", request.getLong("carpool_id"));
-            guest.set("Carpool_Request_id", request.getLong("id"));
-            guest.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
-            guest.insert();
+                carpool.set("filled_seats", filled_seats + noOfPeople);
+                boolean isInserted = carpool.insert();
+                Long user_id = UserUtil.getUserid();
+                Long requestedId = request.getLong("guest_id");
+                Long eventId = carpool.getLong("event_id");
+                if (isInserted) {
+                    Notification notification = new Notification();
+                    notification.set("sender_id", user_id);
+                    notification.set("receiver_id", requestedId);
+                    notification.set("event_id", eventId);
+                    notification.set("notification_type_id", NotificationType.CARPOOL);
+                    notification.set("content", "Your carpool request has been accepted");
+                    notification.set("is_read", false);
+                    notification.set("href", "/events/" + eventId + "/carpools/" + id);
+                    notification.insert();
+                }
 
+            } else {
+                request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.REJECTED));
+            }
         } else {
-            request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.REJECTED));
+            return MapResponse.failure("Not enough seats available");
         }
+
         return request.saveIt() ? MapResponse.success() : MapResponse.failure("Failed to respond to carpool request");
 
     }
