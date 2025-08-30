@@ -8,7 +8,7 @@ import com.hionstudios.mypersonalinvite.model.EventTodoList;
 
 public class TodoFlow {
 
-    public MapResponse addTodo(int event_id, String task) {
+    public MapResponse addTodo(Long event_id, String task) {
 
         EventTodoList todo = new EventTodoList();
         todo.set("event_id", event_id);
@@ -19,7 +19,7 @@ public class TodoFlow {
         return MapResponse.success("To-do added");
     }
 
-    public MapResponse updateTodo(int id, String task, Boolean status) {
+    public MapResponse updateTodo(Long id, String task, Boolean status) {
         EventTodoList todo = EventTodoList.findById(id);
         if (todo == null)
             return MapResponse.failure("To-do not found");
@@ -36,7 +36,7 @@ public class TodoFlow {
         return MapResponse.success("To-do updated");
     }
 
-    public MapResponse deleteTodo(int id) {
+    public MapResponse deleteTodo(Long id) {
         EventTodoList todo = EventTodoList.findById(id);
         if (todo == null)
             return MapResponse.failure("To-do not found");
@@ -44,7 +44,7 @@ public class TodoFlow {
         return MapResponse.success("To-do deleted");
     }
 
-    public MapResponse listTodos(int event_id) {
+    public MapResponse listTodos(Long event_id) {
 
         String sql = "Select * From Event_Todo_List Where Event_Id = ?";
 

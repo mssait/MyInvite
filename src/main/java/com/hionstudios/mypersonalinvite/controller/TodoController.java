@@ -18,32 +18,32 @@ import com.hionstudios.mypersonalinvite.Flow.TodoFlow;
 @RestController
 @RequestMapping("api/todo")
 public class TodoController {
-    @PostMapping("add/{event_id}")
+    @PostMapping("event/{id}/add")
     @IsUser
     public ResponseEntity<MapResponse> addTodo(
-            @PathVariable int event_id,
+            @PathVariable Long event_id,
             @RequestParam String task) {
         return ((DbTransaction) () -> new TodoFlow().addTodo(event_id, task)).write();
     }
 
-    @PutMapping("update/{id}")
+    @PutMapping("{id}/edit")
     @IsUser
     public ResponseEntity<MapResponse> updateTodo(
-            @PathVariable int id,
+            @PathVariable Long id,
             @RequestParam(required = false) String task,
             @RequestParam(required = false) Boolean status) {
         return ((DbTransaction) () -> new TodoFlow().updateTodo(id, task, status)).write();
     }
 
-    @DeleteMapping("delete/{id}")
+    @DeleteMapping("{id}/delete")
     @IsUser
-    public ResponseEntity<MapResponse> deleteTodo(@PathVariable int id) {
+    public ResponseEntity<MapResponse> deleteTodo(@PathVariable Long id) {
         return ((DbTransaction) () -> new TodoFlow().deleteTodo(id)).write();
     }
 
-    @GetMapping("list/{event_id}")
+    @GetMapping("event/{id}")
     @IsUser
-    public ResponseEntity<MapResponse> listTodos(@PathVariable int event_id) {
+    public ResponseEntity<MapResponse> listTodos(@PathVariable Long event_id) {
         return ((DbTransaction) () -> new TodoFlow().listTodos(event_id)).read();
     }
 }

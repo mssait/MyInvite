@@ -63,7 +63,7 @@ public class ChatFlow {
 
     public MapResponse getMessageReadStatus(long event_id, long message_id) {
         //Total Participants
-        String participantSql = "Select Distinct Guest_Id As Id From Event_Guests Where Event_Id = ? Union Select Owner_Id As Id FROM Events Where Id = ?";
+        String participantSql = "Select Distinct Guest_Id As Id From Event_Invites Where Event_Id = ? Union Select Owner_Id As Id From Events Where Id = ?";
         List<MapResponse> participants = Handler.findAll(participantSql, event_id, event_id);
 
         Set<Long> allUsers = participants.stream()
