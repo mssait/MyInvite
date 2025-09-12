@@ -28,19 +28,19 @@ public class EventController {
 
 
     @GetMapping("all")
-    @IsAdmin
+    // @IsAdmin
     public ResponseEntity<MapResponse> getAllEvents() {
         return ((DbTransaction) () -> new EventFlow().getAllEvents()).read();
     }
 
     @GetMapping("upcoming")
-    @IsAdmin
+    // @IsAdmin
     public ResponseEntity<MapResponse> getUpcomingEvents(){
         return ((DbTransaction) () -> new EventFlow().getUpcomingEvents()).read();
     }
 
     @GetMapping("completed")
-    @IsAdmin
+    // @IsAdmin
     public ResponseEntity<MapResponse> getCompletedEvents(){
         return ((DbTransaction) () -> new EventFlow().getCompletedEvents()).read();
     }
@@ -52,7 +52,7 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().getEventDetails(id)).read();
     }
 
-    @GetMapping("{id}/guest-list")
+    @GetMapping("{id}/guest-event-list")
     @IsAdmin
     public ResponseEntity<MapResponse> getEventGuestList(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventGuestList(id)).read();
@@ -88,7 +88,7 @@ public class EventController {
                 start_time, end_time, address, gift_suggestion, latitude, longitude, thumbnail)).write();
     }
 
-    @PutMapping("{id}/{guestIds}/edit")
+    @PutMapping("{id}/edit")
     @IsUser
     public ResponseEntity<MapResponse> editEvent(
             @PathVariable Long id,
@@ -151,13 +151,13 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().getInvitedToEventDetails(id)).read();
     }
 
-    @GetMapping("{id}/delete-guest/{guestId}")
+    @DeleteMapping("{id}/delete-guest/{guestId}")
     @IsUser
     public ResponseEntity<MapResponse> deleteGuestList(@PathVariable Long id, @PathVariable Long guestId) {
         return ((DbTransaction) () -> new EventFlow().deleteGuestList(id, guestId)).write();
     }
 
-    @GetMapping("{id}/update-rsvp/{guestId}")
+    @PutMapping("{id}/update-rsvp/{guestId}")
     @IsUser
     public ResponseEntity<MapResponse> updateRsvp(@PathVariable Long id, @PathVariable Long guestId, @RequestParam String rsvp) {
         return ((DbTransaction) () -> new EventFlow().updateRsvp(id, guestId, rsvp)).write();
@@ -205,8 +205,8 @@ public class EventController {
     @PostMapping("{id}/add-budget")
     @IsUser
     public ResponseEntity<MapResponse> addBudget(
-            @PathVariable long id,
-            @RequestParam long budget_type_id,
+            @PathVariable Long id,
+            @RequestParam Long budget_type_id,
             @RequestParam String amount,
             @RequestParam(required = false) String description) {
         return ((DbTransaction) () -> new EventFlow().addBudget(id, budget_type_id, amount, description)).write();
@@ -215,7 +215,7 @@ public class EventController {
     @PutMapping("edit-budget/{id}")
     @IsUser
     public ResponseEntity<MapResponse> updateBudget(
-            @PathVariable long id,
+            @PathVariable Long id,
             @RequestParam(required = false) String amount,
             @RequestParam(required = false) Long budget_type_id,
             @RequestParam(required = false) String description ) {
@@ -224,13 +224,13 @@ public class EventController {
 
     @DeleteMapping("delete-budget/{id}")
     @IsUser
-    public ResponseEntity<MapResponse> deleteBudget(@PathVariable long id) {
+    public ResponseEntity<MapResponse> deleteBudget(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().deleteBudget(id)).write();
     }
 
     @GetMapping("{id}/guest-list")
     @IsUser
-    public ResponseEntity<MapResponse> getGuestList(@PathVariable long id){
+    public ResponseEntity<MapResponse> getGuestList(@PathVariable Long id){
         return ((DbTransaction) () -> new EventFlow().getGuestList(id)).read();
     }
 

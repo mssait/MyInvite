@@ -12,7 +12,7 @@ import com.hionstudios.mypersonalinvite.model.UserRole;
 
 public class UserFlow {
     public MapResponse getUsers() {
-        String sql = "Select * From Users";
+        String sql = "Select Name, Email, Phone_Number, Profile_pic as Avatar From Users";
         return Handler.toDataGrid(sql);
     }
 

@@ -1,4 +1,4 @@
-import { Box, Chip, Link } from "@mui/material";
+import { Avatar, Box, Chip, Link } from "@mui/material";
 import { DataGridPremium, GridCellEditStopReasons, GridToolbar } from '@mui/x-data-grid-premium';
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import React, { useEffect, useState } from 'react';
@@ -137,6 +137,10 @@ const ClientDataGrid = ({
             } else if (columns[i].type === 'chip-select') {
                 columns[i].type = 'singleSelect'
                 columns[i].renderCell = ({ formattedValue }) => <Chip sx={{ color: columns[i]?.chipColor?.[formattedValue]?.[900], bgcolor: columns[i]?.chipColor?.[formattedValue]?.[100] }} label={formattedValue} />
+            }
+            else if (columns[i].type === 'avatar') {
+                columns[i].renderCell = ({ value }) => value && <Avatar src={value} style={{ width: 'auto', height: '100%' }} />
+                columns[i].valueGetter = value => value && toImage(value)
             }
         }
         return columns;

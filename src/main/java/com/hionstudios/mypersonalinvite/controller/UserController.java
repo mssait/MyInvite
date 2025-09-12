@@ -17,7 +17,7 @@ import com.hionstudios.mypersonalinvite.Flow.UserFlow;
 @RequestMapping("api/user")
 public class UserController {
     @GetMapping("view")
-    @IsAdmin
+    // @IsAdmin
     public ResponseEntity<MapResponse> users() {
         return ((DbTransaction) () -> new UserFlow().getUsers()).read();
     }
@@ -40,7 +40,7 @@ public class UserController {
     @IsAdmin
     public ResponseEntity<MapResponse> editUsers(
             @PathVariable Long id,
-            @RequestParam(required = false)boolean is_active) {
+            @RequestParam(required = false) boolean is_active) {
         return ((DbTransaction) () -> new UserFlow().editUsers(id, is_active))
                 .write();
     }
