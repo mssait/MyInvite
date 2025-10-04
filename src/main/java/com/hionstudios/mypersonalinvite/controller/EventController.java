@@ -52,7 +52,7 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().getEventDetails(id)).read();
     }
 
-    @GetMapping("{id}/guest-list")
+    @GetMapping("{id}/get-guest-list")
     @IsAdmin
     public ResponseEntity<MapResponse> getEventGuestList(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventGuestList(id)).read();
