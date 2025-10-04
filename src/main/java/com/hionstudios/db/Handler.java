@@ -345,4 +345,37 @@ public interface Handler {
             e.printStackTrace();
         }
     }
+
+    static MapResponse eventtoDataGrid(String sql, Object... params) {
+        List<Object> rows = new ArrayList<>();
+        MapResponse response;
+        try {
+            findWith(sql, params, new RowListenerAdapter() {
+                @Override
+                public void onNext(Map<String, Object> row) {
+                    MapResponse rowMap = new MapResponse();
+                    for (Map.Entry<String, Object> entry : row.entrySet()) {
+                        String column = entry.getKey();
+                        Object value = entry.getValue();
+                        if (value instanceof PgArray) {
+                            rowMap.put(column, toList((PgArray) value));
+                        } else {
+                            rowMap.put(column, value);
+                        }
+                    }
+                    Object id = row.get("id");
+                    if (id == null) {
+                        id = UUID.randomUUID().toString();
+                    }
+                    rowMap.put("id", id);
+                    rows.add(rowMap);
+                }
+            });
+            response = MapResponse.success();
+        } catch (Exception e) {
+            response = MapResponse.failure(e.getMessage());
+        }
+        return response.put("rows", rows);
+    }
+
 }

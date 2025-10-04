@@ -16,13 +16,14 @@ export const clearAuthLocalStorage = () => {
 }
 export const isLoggedIn = () => Boolean(getAuth())
 export const getUserType = () => localStorage.type;
+export const isAdmin = () =>  getUserType() === 'User_admin';
 
 export const clearAuth = () => {
     Cookies.remove(config.cookieName)
 }
 export const getHomePage = () => {
     switch (getUserType()) {
-        case 'Admin':
+        case 'User_admin':
             return '/admin'
         default:
             return '/'

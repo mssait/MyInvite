@@ -99,7 +99,7 @@ export const Users = () => {
                         field: "avatar",
                         width: "200",
                         id: "avatar",
-                        type: "image",
+                        type: "avatar",
                     },
                     
                     

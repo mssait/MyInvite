@@ -21,9 +21,9 @@ export const BudgetType = () => {
 
   const processRowUpdate = async (newRow, oldRow) => {
     const data = {
-      Budget_type: newRow.name,
+      budget_type: newRow.name,
     };
-    if (!data.Budget_type) {
+    if (!data.budget_type) {
       enqueueSnackbar("Budget type should not be empty", { variant: "warning" });
       setRowModesModel({
         ...rowModesModel,

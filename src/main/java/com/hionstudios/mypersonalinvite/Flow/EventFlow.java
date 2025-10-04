@@ -1,10 +1,14 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.tika.utils.SystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hionstudios.MapResponse;
@@ -49,39 +53,17 @@ public class EventFlow {
         return Handler.toDataGrid(sql);
 
     }
-
+    
     public MapResponse getUpcomingEvents() {
-        // String sql = "Select Events.*, COALESCE(jsonb_agg(Distinct
-        // jsonb_build_object('image', Event_Thumbnails.image)) Filter (Where
-        // Event_Thumbnails.Id Is Not Null), '[]'::jsonb) As Thumbnails,
-        // COALESCE(Jsonb_agg(Distinct jsonb_build_object('amount',
-        // Event_Budgets.Amount, 'description', Event_Budgets.Description,
-        // 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not
-        // Null), '[]'::jsonb) As Budgets From Events Left Join Event_Thumbnails On
-        // Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id =
-        // Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id
-        // = Budget_Types.Id Where Events.Completed = ? Group By Events.Id Order By
-        // Events.Date Desc";
-
-        // List<MapResponse> events = Handler.findAll(sql, false);
-        // MapResponse response = new MapResponse().put("UpcomingEvents", events);
-        // return response;
-
-        String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date > Now() Order By Events.Date Desc";
-
-        return Handler.toDataGrid(sql);
+        long now = System.currentTimeMillis();
+        String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date >= ? Order By Events.Date Asc";
+        return Handler.eventtoDataGrid(sql, now);
     }
 
     public MapResponse getCompletedEvents() {
-        // String sql = "Select Events.*, COALESCE(jsonb_agg(Distinct jsonb_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]'::jsonb) As Thumbnails, COALESCE(Jsonb_agg(Distinct jsonb_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]'::jsonb) As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Completed = ? Group By Events.Id Order By Events.Date Desc";
-
-        // List<MapResponse> events = Handler.findAll(sql, true);
-        // MapResponse response = new MapResponse().put("CompletedEvents", events);
-        // return response;
-
-         String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date < Now() Order By Events.Date Desc";
-
-        return Handler.toDataGrid(sql);
+        long now = System.currentTimeMillis();
+        String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date <= ? Order By Events.Date Desc";
+        return Handler.eventtoDataGrid(sql, now);
     }
 
     public MapResponse getEventDetails(Long id) {

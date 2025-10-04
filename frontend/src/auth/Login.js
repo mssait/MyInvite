@@ -15,8 +15,10 @@ import LogoSection from "../layout/MainLayout/LogoSection";
 import fetcher from "../utils/fetcher";
 import { useQuery } from "../utils/useQuery";
 import { clearAuthLocalStorage, getHomePage, isLoggedIn } from "./AuthProvider";
+import { useSnackbar } from "notistack";
 
 const Login = () => {
+    const { enqueueSnackbar } = useSnackbar();
     const [params] = useQuery();
     const navigate = useNavigate()
 
@@ -64,10 +66,11 @@ const Login = () => {
                                                     navigate(params.ref || getHomePage())
                                                 })
                                             } else {
-
+                                                enqueueSnackbar('Bad Credentials', { variant: 'error' })
                                             }
                                         })
                                         .catch(() => {
+                                            enqueueSnackbar('Error occurred', { variant: 'error' })
 
                                         })
                                 }}

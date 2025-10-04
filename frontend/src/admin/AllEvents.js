@@ -1,17 +1,12 @@
-import { Box, Breadcrumbs, Button, Card, CardContent, Chip, IconButton, Stack, Tooltip, Typography } from '@mui/material';
+import { Box, Breadcrumbs, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
 import { orange, purple, red, teal } from '@mui/material/colors';
 import { GridToolbarContainer, GridToolbarExport, GridToolbarFilterButton } from '@mui/x-data-grid-premium';
-import { IconEdit, IconPlus } from '@tabler/icons-react';
-// import { useConfirm } from 'material-ui-confirm';
 import { useSnackbar } from 'notistack';
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ClientDataGrid from '../components/ClientDataGrid';
-import fetcher from '../utils/fetcher';
-
 
 export const AllEvents = () => {
-    // const confirm = useConfirm()
     const { enqueueSnackbar } = useSnackbar()
     const [refresh, setRefresh] = useState(0)
 
@@ -60,7 +55,7 @@ export const AllEvents = () => {
                         type: "actions",
                         getActions: ({ id }) => (
                             [
-                                 <Chip label="View Details" component={Link} to={`${id}/event-details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
+                                <Chip label="View Details" component={Link} to={`${id}/event-details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
                             ]
                         )
                     },
@@ -69,7 +64,7 @@ export const AllEvents = () => {
                         field: "title",
                         width: "200",
                         id: "title",
-                        type: "string",                       
+                        type: "string",
                     },
                     {
                         headerName: "Host Name",
@@ -93,15 +88,27 @@ export const AllEvents = () => {
                         type: "date",
                     },
                     {
-                        headerName: "location",
+                        headerName: "Location",
                         field: "location",
-                        width: "200",
+                        width: 200,
                         id: "location",
-                        type: "string",
+                        type: "actions",
+                        getActions: (params) => {
+                            const { row } = params;
+                            return [
+                                <Chip
+                                    label="View map"
+                                    component="a"
+                                    href={`https://www.google.com/maps?q=${row.location_latitude},${row.location_logitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    key={row.id}
+                                    sx={{ bgcolor: teal[100], color: teal[900], borderRadius: "8px" }}
+                                />
+                            ];
+                        }
                     },
-                    
-                    
-                    
+
                 ]}
             />
         </Stack>

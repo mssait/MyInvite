@@ -7,10 +7,21 @@ import { Users } from "../admin/Users";
 import MainLayout from "../layout/MainLayout";
 import { UpcomingEvents } from "../admin/UpcomingEvents";
 import { CompletedEvents } from "../admin/CompletedEvents";
+import AdminLayout from "../admin/AdminLayout";
+import { ThemeProvider } from "@mui/material";
+import theme from "../themes/theme";
+import { EventDetails } from "../admin/Eventdetails";
+
+
+
 
 const AdminRoutes = {
     path: '/admin',
-    element: <MainLayout menuItems={menuItems} />,
+    element: (
+        <ThemeProvider theme={theme}>
+            <AdminLayout />
+        </ThemeProvider>
+    ),
     children: [
         {
             path: '',
@@ -26,11 +37,23 @@ const AdminRoutes = {
         },
         {
             path: 'upcoming-events',
-            element: <UpcomingEvents/>
+            element: <UpcomingEvents />
         },
         {
             path: 'completed-events',
             element: <CompletedEvents />
+        },
+        {
+            path: 'completed-events/:id/event-details',
+            element: <EventDetails />
+        },
+        {
+            path: 'upcoming-events/:id/event-details',
+            element: <EventDetails />
+        },
+        {
+            path: 'all-events/:id/event-details',
+            element: <EventDetails />
         },
         {
             path: 'event-types',
@@ -40,8 +63,8 @@ const AdminRoutes = {
             path: 'budget-types',
             element: <BudgetType />
         },
-    
-        
+
+
     ]
 }
 

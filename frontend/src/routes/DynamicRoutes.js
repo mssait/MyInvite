@@ -8,7 +8,7 @@ const DynamicRoutes = {
     element: <MinimalLayout />,
     children: [
         {
-            path: '/login',
+            path: '',
             element: <Login />
         },
         {

@@ -93,15 +93,26 @@ export const CompletedEvents = () => {
                         type: "date",
                     },
                     {
-                        headerName: "location",
+                        headerName: "Location",
                         field: "location",
-                        width: "200",
+                        width: 200,
                         id: "location",
-                        type: "string",
+                        type: "actions",
+                        getActions: (params) => {
+                            const { row } = params;
+                            return [
+                                <Chip
+                                    label="View map"
+                                    component="a"
+                                    href={`https://www.google.com/maps?q=${row.location_latitude},${row.location_logitude}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    key={row.id}
+                                    sx={{ bgcolor: teal[100], color: teal[900], borderRadius: "8px" }}
+                                />
+                            ];
+                        }
                     },
-
-
-
                 ]}
             />
         </Stack>
