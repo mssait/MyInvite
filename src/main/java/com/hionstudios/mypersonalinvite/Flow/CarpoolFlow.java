@@ -113,7 +113,7 @@ public class CarpoolFlow {
             if (ownerId != null && !ownerId.equals(user_id) && eventId != null) {
                 User sender = User.findById(user_id);
                 String senderName = sender != null ? sender.getString("name") : "A user";
-                com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
+                Notification notification = new Notification();
                 notification.set("sender_id", user_id);
                 notification.set("receiver_id", ownerId);
                 notification.set("event_id", eventId);
