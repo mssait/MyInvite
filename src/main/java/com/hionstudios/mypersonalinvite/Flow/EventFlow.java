@@ -229,12 +229,13 @@ public class EventFlow {
 
     public MapResponse getUpcomingEventsForOwners() {
         Long userId = UserUtil.getUserid();
+        long now = System.currentTimeMillis();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > Now() Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > ? Group By Events.Id Order By Events.Date Desc";
 
-        List<MapResponse> events = Handler.findAll(sql_1, userId);
+        List<MapResponse> events = Handler.findAll(sql_1, userId, now);
 
         MapResponse response = new MapResponse().put("OwnersEvents", events);
         return response;
@@ -243,12 +244,13 @@ public class EventFlow {
 
     public MapResponse getCompletedEventsForOwners() {
         Long userId = UserUtil.getUserid();
+        long now = System.currentTimeMillis();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date < Now() Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date < ? Group By Events.Id Order By Events.Date Desc";
 
-        List<MapResponse> events = Handler.findAll(sql_1, userId);
+        List<MapResponse> events = Handler.findAll(sql_1, userId, now);
 
         MapResponse response = new MapResponse().put("OwnersEvents", events);
         return response;
@@ -329,11 +331,12 @@ public class EventFlow {
 
     public MapResponse guestUpcomingEvents() {
         Long userId = UserUtil.getUserid();
+        long now = System.currentTimeMillis();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select * From Event_Invites Where guest_id = ? And Created_Time > Extract(Epoch From Now())*1000";
-        List<MapResponse> events = Handler.findAll(sql, userId);
+        String sql = "Select * From Event_Invites Where guest_id = ? And Created_Time > ?";
+        List<MapResponse> events = Handler.findAll(sql, userId, now);
 
         MapResponse response = new MapResponse().put("InvitedToUpcomingEvents", events);
         return response;
@@ -341,11 +344,12 @@ public class EventFlow {
 
     public MapResponse guestCompletedEvents() {
         Long userId = UserUtil.getUserid();
+        long now = System.currentTimeMillis();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select * From Event_Invites Where guest_id = ? And Created_Time < Extract(Epoch From Now())*1000";
-        List<MapResponse> events = Handler.findAll(sql, userId);
+        String sql = "Select * From Event_Invites Where guest_id = ? And Created_Time < ?";
+        List<MapResponse> events = Handler.findAll(sql, userId, now);
 
         MapResponse response = new MapResponse().put("InvitedToCompletedEvents", events);
         return response;
