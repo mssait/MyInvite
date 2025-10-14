@@ -78,7 +78,7 @@ public class WorkDrive extends ZohoApp {
     }
 
     public enum Folder {
-        MYPERSONALINVITE("");
+        MYPERSONALINVITE("ee9jd89cc3efbf00e4cfc8471ecabfa90f32d");
 
 
         private final String id;
