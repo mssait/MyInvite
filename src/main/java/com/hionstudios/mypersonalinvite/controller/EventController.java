@@ -19,6 +19,7 @@ import com.hionstudios.MapResponse;
 import com.hionstudios.MixMultipartFileAndString;
 import com.hionstudios.db.DbTransaction;
 import com.hionstudios.iam.IsAdmin;
+import com.hionstudios.iam.IsAdminAndUser;
 import com.hionstudios.iam.IsUser;
 import com.hionstudios.mypersonalinvite.Flow.EventFlow;
 
@@ -44,31 +45,31 @@ public class EventController {
     }
 
     @GetMapping("{id}/details")
-    @IsAdmin
+    @IsAdminAndUser
     public ResponseEntity<MapResponse> getEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventDetails(id)).read();
     }
 
     @GetMapping("{id}/guest-event-list")
-    @IsAdmin
+    @IsAdminAndUser
     public ResponseEntity<MapResponse> getEventGuestList(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventGuestList(id)).read();
     }
 
     @GetMapping("{id}/todo-list")
-    @IsAdmin
+    @IsAdminAndUser
     public ResponseEntity<MapResponse> getEventTodoList(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventTodoList(id)).read();
     }
 
     @GetMapping("{id}/carpool")
-    @IsAdmin
+    @IsAdminAndUser
     public ResponseEntity<MapResponse> getEventCarpool(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventCarpool(id)).read();
     }
 
     @GetMapping("{id}/group-chat")
-    @IsAdmin
+    @IsAdminAndUser
     public ResponseEntity<MapResponse> getEventGroupChat(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventGroupChat(id)).read();
     }
