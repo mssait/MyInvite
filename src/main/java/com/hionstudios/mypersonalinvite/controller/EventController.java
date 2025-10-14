@@ -25,29 +25,26 @@ import com.hionstudios.mypersonalinvite.Flow.EventFlow;
 @RestController
 @RequestMapping("api/event")
 public class EventController {
-
-
     @GetMapping("all")
-    // @IsAdmin
+    @IsAdmin
     public ResponseEntity<MapResponse> getAllEvents() {
         return ((DbTransaction) () -> new EventFlow().getAllEvents()).read();
     }
 
     @GetMapping("upcoming")
-    // @IsAdmin
+    @IsAdmin
     public ResponseEntity<MapResponse> getUpcomingEvents(){
         return ((DbTransaction) () -> new EventFlow().getUpcomingEvents()).read();
     }
 
     @GetMapping("completed")
-    // @IsAdmin
+    @IsAdmin
     public ResponseEntity<MapResponse> getCompletedEvents(){
         return ((DbTransaction) () -> new EventFlow().getCompletedEvents()).read();
     }
 
     @GetMapping("{id}/details")
-    // @IsUser
-    // @IsAdmin
+    @IsAdmin
     public ResponseEntity<MapResponse> getEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventDetails(id)).read();
     }

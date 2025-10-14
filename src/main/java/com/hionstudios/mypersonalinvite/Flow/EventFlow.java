@@ -24,6 +24,7 @@ import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.oauth.WorkDrive;
 import com.hionstudios.oauth.WorkDrive.Folder;
+import com.hionstudios.time.TimeUtil;
 
 public class EventFlow {
 
@@ -48,32 +49,32 @@ public class EventFlow {
         // MapResponse response = new MapResponse().put("AllEvents", events);
         // return response;
 
-        String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Order By Events.Date Desc";
+        String sql = "Select Events.Id, Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Longitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Order By Events.Date Desc";
 
         return Handler.toDataGrid(sql);
 
     }
-    
+
     public MapResponse getUpcomingEvents() {
         long now = System.currentTimeMillis();
-        String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date >= ? Order By Events.Date Asc";
+        String sql = "Select Events.Id, Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Longitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date >= ? Order By Events.Date Asc";
         return Handler.eventtoDataGrid(sql, now);
     }
 
     public MapResponse getCompletedEvents() {
         long now = System.currentTimeMillis();
-        String sql = "Select Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date <= ? Order By Events.Date Desc";
+        String sql = "Select Events.Id, Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Longitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date <= ? Order By Events.Date Desc";
         return Handler.eventtoDataGrid(sql, now);
     }
 
     public MapResponse getEventDetails(Long id) {
-        String sql = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Id = ? Group By Events.Id";
+        String sql = "Select Events.*, COALESCE(json_agg(Distinct jsonb_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(json_agg(Distinct jsonb_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id  Where Events.Id = ? Group By Events.Id";
 
         List<MapResponse> events = Handler.findAll(sql, id);
         if (events.isEmpty()) {
             return MapResponse.failure("Event not found");
         }
-        return new MapResponse().put("EventDetails", events.get(0));
+        return new MapResponse().put("EventDetails", events);
     }
 
     public MapResponse getEventGuestList(Long id) {
@@ -232,9 +233,10 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > Now() Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('image', Event_Thumbnails.image)) FILTER (WHERE Event_Thumbnails.Id IS NOT NULL), '[]') AS Thumbnails, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('amount', Event_Budgets.Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) FILTER (WHERE Event_Budgets.Id IS NOT NULL), '[]') AS Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > ? Group By Events.Id Order By Events.Date Desc";
 
-        List<MapResponse> events = Handler.findAll(sql_1, userId);
+        long currentTime = TimeUtil.currentTime();
+        List<MapResponse> events = Handler.findAll(sql_1, userId, currentTime);
 
         MapResponse response = new MapResponse().put("OwnersEvents", events);
         return response;

@@ -11,6 +11,7 @@ import AdminLayout from "../admin/AdminLayout";
 import { ThemeProvider } from "@mui/material";
 import theme from "../themes/theme";
 import { EventDetails } from "../admin/Eventdetails";
+import { EventCarpools } from "../admin/EventCarpools";
 
 
 
@@ -44,16 +45,20 @@ const AdminRoutes = {
             element: <CompletedEvents />
         },
         {
-            path: 'completed-events/:id/event-details',
+            path: 'completed-events/:id/details',
             element: <EventDetails />
         },
         {
-            path: 'upcoming-events/:id/event-details',
+            path: 'upcoming-events/:id/details',
             element: <EventDetails />
         },
         {
-            path: 'all-events/:id/event-details',
+            path: 'all-events/:id/details',
             element: <EventDetails />
+        },
+        {
+            path: 'all-events/:id/details/carpools',
+            element: <EventCarpools />
         },
         {
             path: 'event-types',
@@ -63,8 +68,6 @@ const AdminRoutes = {
             path: 'budget-types',
             element: <BudgetType />
         },
-
-
     ]
 }
 

@@ -11,9 +11,6 @@ import fetcher from '../utils/fetcher';
 
 
 export const CompletedEvents = () => {
-    // const confirm = useConfirm()
-    const { enqueueSnackbar } = useSnackbar()
-    const [refresh, setRefresh] = useState(0)
 
     const AddToolbar = () => {
         return (
@@ -49,18 +46,17 @@ export const CompletedEvents = () => {
             </Card>
             <ClientDataGrid
                 Toolbar={AddToolbar}
-                refresh={refresh}
                 ajax={{ url: "/api/event/completed" }}
                 columns={[
                     {
                         headerName: "Action",
                         field: "Action",
-                        width: "250",
+                        width: "200",
                         id: "Action",
                         type: "actions",
                         getActions: ({ id }) => (
                             [
-                                <Chip label="View Details" component={Link} to={`${id}/event-details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
+                                <Chip label="View Details" component={Link} to={`${id}/details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
                             ]
                         )
                     },

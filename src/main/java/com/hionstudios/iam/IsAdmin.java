@@ -9,6 +9,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasRole('ROLE_USER_ADMIN')")
 public @interface IsAdmin {
 }

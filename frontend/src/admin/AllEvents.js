@@ -7,8 +7,6 @@ import { Link } from 'react-router-dom';
 import ClientDataGrid from '../components/ClientDataGrid';
 
 export const AllEvents = () => {
-    const { enqueueSnackbar } = useSnackbar()
-    const [refresh, setRefresh] = useState(0)
 
     const AddToolbar = () => {
         return (
@@ -44,18 +42,17 @@ export const AllEvents = () => {
             </Card>
             <ClientDataGrid
                 Toolbar={AddToolbar}
-                refresh={refresh}
                 ajax={{ url: "/api/event/all" }}
                 columns={[
                     {
                         headerName: "Action",
                         field: "Action",
-                        width: "250",
+                        width: "150",
                         id: "Action",
                         type: "actions",
                         getActions: ({ id }) => (
                             [
-                                <Chip label="View Details" component={Link} to={`${id}/event-details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
+                                <Chip label="View Details" component={Link} to={`${id}/details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
                             ]
                         )
                     },
@@ -99,7 +96,7 @@ export const AllEvents = () => {
                                 <Chip
                                     label="View map"
                                     component="a"
-                                    href={`https://www.google.com/maps?q=${row.location_latitude},${row.location_logitude}`}
+                                    href={`https://www.google.com/maps?q=${row.location_latitude},${row.location_longitude}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     key={row.id}

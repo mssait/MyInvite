@@ -71,6 +71,7 @@ export const Users = () => {
             <ClientDataGrid
                 Toolbar={AddToolbar}
                 refresh={refresh}
+                rowHeight={80}
                 ajax={{ url: "/api/user/view" }}
                 columns={[
                     {
@@ -78,14 +79,9 @@ export const Users = () => {
                         field: "name",
                         width: "200",
                         id: "name",
-                        type: "string",                       
-                    },
-                    {
-                        headerName: "Email Id",
-                        field: "email",
-                        width: "200",
-                        id: "email",
-                        type: "email",
+                        type: "string",
+                        headerAlign: "center",
+                        align: "center",
                     },
                     {
                         headerName: "Phone Number",
@@ -95,14 +91,19 @@ export const Users = () => {
                         type: "phone",
                     },
                     {
+                        headerName: "Email Id",
+                        field: "email",
+                        width: "200",
+                        id: "email",
+                        type: "email",
+                    },
+                    {
                         headerName: "Profile",
                         field: "avatar",
-                        width: "200",
+                        width: "100",
                         id: "avatar",
                         type: "avatar",
-                    },
-                    
-                    
+                    }
                 ]}
             />
         </Stack>

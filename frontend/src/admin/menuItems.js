@@ -1,4 +1,4 @@
-import { IconBrandMastercard, IconDashboard, IconTypography } from "@tabler/icons-react"
+import { IconBrandMastercard, IconCalendarBolt, IconCalendarCheck, IconCalendarEvent, IconDashboard, IconMoneybag, IconTypography, IconUser } from "@tabler/icons-react"
 
 const menuItems = {
     items: [
@@ -19,7 +19,7 @@ const menuItems = {
                     title: 'Users',
                     type: 'item',
                     url: 'users',
-                    icon: IconDashboard
+                    icon: IconUser
                 },
             ]
         },
@@ -33,21 +33,21 @@ const menuItems = {
                     title: 'All Events',
                     type: 'item',
                     url: 'all-events',
-                    icon: IconDashboard
+                    icon: IconCalendarEvent
                 },
                 {
                     id: 'view-upcoming-events',
                     title: 'Upcoming Events',
                     type: 'item',
                     url: 'upcoming-events',
-                    icon: IconDashboard
+                    icon: IconCalendarBolt
                 },
                 {
                     id: 'view-completed-events',
                     title: 'Completed Events',
                     type: 'item',
                     url: 'completed-events',
-                    icon: IconDashboard
+                    icon: IconCalendarCheck
                 },
             ]
         },
@@ -68,7 +68,7 @@ const menuItems = {
                     title: 'Budget Types',
                     type: 'item',
                     url: 'budget-types',
-                    icon: IconTypography
+                    icon: IconMoneybag
                 }
             ]
         }

@@ -139,7 +139,7 @@ const ClientDataGrid = ({
                 columns[i].renderCell = ({ formattedValue }) => <Chip sx={{ color: columns[i]?.chipColor?.[formattedValue]?.[900], bgcolor: columns[i]?.chipColor?.[formattedValue]?.[100] }} label={formattedValue} />
             }
             else if (columns[i].type === 'avatar') {
-                columns[i].renderCell = ({ value }) => value && <Avatar src={value} style={{ width: 'auto', height: '100%' }} />
+                columns[i].renderCell = ({ value }) => value && <Avatar src={value} style={{ width: 'auto', height: '90%', margin: "5px" }} />
                 columns[i].valueGetter = value => value && toImage(value)
             }
         }

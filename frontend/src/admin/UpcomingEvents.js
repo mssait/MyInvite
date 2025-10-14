@@ -8,8 +8,6 @@ import ClientDataGrid from '../components/ClientDataGrid';
 
 
 export const UpcomingEvents = () => {
-    const { enqueueSnackbar } = useSnackbar()
-    const [refresh, setRefresh] = useState(0)
 
     const AddToolbar = () => {
         return (
@@ -51,12 +49,12 @@ export const UpcomingEvents = () => {
                     {
                         headerName: "Action",
                         field: "Action",
-                        width: "250",
+                        width: "200",
                         id: "Action",
                         type: "actions",
                         getActions: ({ id }) => (
                             [
-                                <Chip label="View Details" component={Link} to={`${id}/event-details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
+                                <Chip label="View Details" component={Link} to={`${id}/details`} key={id} sx={{ bgcolor: purple[100], color: purple[900], borderRadius: "8px" }} />
                             ]
                         )
                     },

@@ -4,7 +4,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 const Loader = () => (
     <Box sx={{
         position: 'fixed',
-        top: 0,
+        top: -16,
         left: 0,
         zIndex: 1301,
         width: '100%'

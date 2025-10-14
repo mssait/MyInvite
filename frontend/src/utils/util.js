@@ -11,6 +11,7 @@ export const WorkDriveImage = ({ image, alt, auto, width = '100%' }) => (
 )
 export const toDate = time => time ? moment(time).format('DD MMM YYYY') : time;
 export const toDateTime = time => time ? moment(time).format('DD MMM YYYY hh:mm:ss a') : time;
+export const toTime = time => time ? moment(time).format('hh:mm a') : time;
 export const todayStart = () => moment().startOf('day').format('YYYY-MM-DDTHH:mm')
 export const todayEnd = () => moment().endOf('day').format('YYYY-MM-DDTHH:mm')
 export const addDays = days => moment().add(days, 'days').endOf('day').format('YYYY-MM-DDTHH:mm')
@@ -56,4 +57,18 @@ export const inr = value => {
         finalValue = "-" + finalValue
     }
     return finalValue
+
 }
+
+export const toTimeMillis = (milliseconds) => {
+    if (milliseconds == null) return 'N/A';
+    const totalMinutes = Math.floor(milliseconds / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    
+    // Convert to 12-hour format
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const adjustedHours = hours % 12 || 12;
+  
+    return `${adjustedHours}:${minutes.toString().padStart(2, '0')} ${period}`;
+};
