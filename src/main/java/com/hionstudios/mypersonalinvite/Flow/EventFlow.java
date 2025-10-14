@@ -336,7 +336,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select * From Event_Invites Where guest_id = ? And Created_Time > ?";
+        String sql = "Select *, Event_Thumbnails.Image, Events.Date As Event_Date From Event_Invites Join Event_Thumbnails On Event_Thumbnails.Event_Id = Event_Invites.Event_Id Join Events On Events.Id = Event_Invites.Event_Id Where Event_Invites.Guest_Id = ? And Events.Date > ?";
         List<MapResponse> events = Handler.findAll(sql, userId, now);
 
         MapResponse response = new MapResponse().put("InvitedToUpcomingEvents", events);
@@ -349,7 +349,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select * From Event_Invites Where guest_id = ? And Created_Time < ?";
+        String sql = "Select *, Event_Thumbnails.Image, Events.Date As Event_Date From Event_Invites Join Event_Thumbnails On Event_Thumbnails.Event_Id = Event_Invites.Event_Id Join Events On Events.Id = Event_Invites.Event_Id Where Event_Invites.Guest_Id = ? And Events.Date < ?";
         List<MapResponse> events = Handler.findAll(sql, userId, now);
 
         MapResponse response = new MapResponse().put("InvitedToCompletedEvents", events);
