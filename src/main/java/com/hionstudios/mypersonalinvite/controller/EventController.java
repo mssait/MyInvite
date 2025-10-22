@@ -232,4 +232,10 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().getGuestList(id)).read();
     }
 
+    @GetMapping("types")
+    @IsUser
+    public ResponseEntity<MapResponse> getEventTypes(){
+        return ((DbTransaction) () -> new EventFlow().getEventTypes()).read();
+    }
+
 }

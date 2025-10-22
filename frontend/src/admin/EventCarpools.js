@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Card, Typography, Avatar, Divider, Stack, CardContent } from "@mui/material";
+import { Box, Card, Typography, Avatar, Divider, Stack, CardContent, Breadcrumbs } from "@mui/material";
 import { IconCalendarMonth, IconCircle } from "@tabler/icons-react";
 import BreadcrumbLink from "../components/BreadcrumbLink";
 import { useLocation, useParams } from "react-router-dom";
@@ -31,7 +31,7 @@ const carpools = [
 export const EventCarpools = ({ id = useParams()["id"] }) => {
   const location = useLocation();
 
-  const Breadcrumbs = () => {
+  const RenderBreadcrumbs  = () => {
     if (location.pathname.includes("all-events")) {
       return (
         <Breadcrumbs maxItems={2} separator="›">
@@ -78,7 +78,7 @@ export const EventCarpools = ({ id = useParams()["id"] }) => {
               <Typography variant="h3" pb={{ md: 0, xs: 1 }}>Event Details</Typography>
             </Box>
             <Box sx={{ width: { xs: "80%", md: "auto" } }}>
-              {Breadcrumbs()}
+              {RenderBreadcrumbs ()}
             </Box>
           </Box>
         </CardContent>

@@ -70,13 +70,32 @@ VALUES
 
 CREATE TABLE IF NOT EXISTS EVENT_TYPES (
     ID BIGSERIAL PRIMARY KEY,
-    TYPE VARCHAR(100) UNIQUE
+    TYPE VARCHAR(100) UNIQUE,
+    IMAGE VARCHAR(250)
 );
 
 CREATE TABLE IF NOT EXISTS BUDGET_TYPES (
     ID BIGSERIAL PRIMARY KEY,
     TYPE VARCHAR(100) UNIQUE
 );
+
+INSERT INTO BUDGET_TYPES (TYPE)
+VALUES
+	('Venue & Decoration'),
+    ('Catering & Food'),
+    ('Photography & Videography'),
+    ('Makeup & Styling'),
+    ('Invitation & Stationery'),
+    ('Entertainment & Music'),
+    ('Outfits & Accessories'),
+    ('Transportation & Logistics'),
+    ('Lighting & Stage Setup'),
+    ('Accommodation & Hospitality'),
+    ('Event Planning & Coordination'),
+    ('Gifts & Return Gifts'),
+    ('Ceremony Rituals & Pooja Items'),
+    ('Cake & Desserts'),
+    ('Others');
 
 CREATE TABLE IF NOT EXISTS CARPOOL_GUEST_STATUSES (
     ID BIGSERIAL PRIMARY KEY,

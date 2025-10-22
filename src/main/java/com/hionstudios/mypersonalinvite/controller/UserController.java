@@ -45,4 +45,10 @@ public class UserController {
                 .write();
     }
 
+    @GetMapping("dashboard")
+    @IsAdmin
+    public ResponseEntity<MapResponse> dashboard() {
+        return ((DbTransaction) () -> new UserFlow().dashboard()).read();
+    }
+
 }

@@ -13,7 +13,7 @@ import {
 } from '@mui/material';
 
 import { IconLogout } from '@tabler/icons-react';
-import { getAvatar, getName } from '../../../../auth/AuthProvider';
+import { getAvatar, getEmail, getName } from '../../../../auth/AuthProvider';
 import { toImage } from '../../../../utils/util';
 
 const ProfileSection = () => {
@@ -109,7 +109,8 @@ const ProfileSection = () => {
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
             >
-                <Typography px={2} py={1}>{getName()}</Typography>
+                <Typography px={2} pt={1} pb={2}>Name: {getName()}</Typography>
+                <Typography px={2} pb={2}>Email:  {getEmail()}</Typography>
                 <Divider />
                 <MenuItem component={Link} to="/logout">
                     <ListItemIcon>

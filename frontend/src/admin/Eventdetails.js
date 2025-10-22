@@ -1,5 +1,5 @@
 
-import { Box, Button, Card, CardContent, Grid2, Skeleton, Stack, Typography } from '@mui/material'
+import { Box, Breadcrumbs, Button, Card, CardContent, Grid, Skeleton, Stack, Typography } from '@mui/material'
 import { IconCalendarMonth, IconLocation } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
@@ -18,7 +18,7 @@ export const EventDetails = ({ id = useParams()["id"] }) => {
             })
     }, [])
 
-    const Breadcrumbs = () => {
+    const RenderBreadcrumbs  = () => {
         if (location.pathname.includes("all-events")) {
             return (
                 <Breadcrumbs maxItems={2} separator="›">
@@ -62,7 +62,7 @@ export const EventDetails = ({ id = useParams()["id"] }) => {
                             <Typography variant="h3" pb={{ md: 0, xs: 1 }}>Event Details</Typography>
                         </Box>
                         <Box sx={{ width: { xs: "80%", md: "auto" } }}>
-                            {/* {Breadcrumbs()} */}
+                            {RenderBreadcrumbs ()}
                         </Box>
                     </Box>
                 </CardContent>
@@ -73,7 +73,7 @@ export const EventDetails = ({ id = useParams()["id"] }) => {
             ) : (
                 <Box>
                     {eventDetails?.map((event, index) => (
-                        <Grid2 size={{ xs: 12, md: 12 }} key={index}>
+                        <Grid size={{ xs: 12, md: 12 }} key={index}>
                             <Card sx={{ borderRadius: 2, display: "flex", flexDirection: { xs: "column", md: "row" }, overflow: "hidden" }}>
 
                                 {/* Left Side - Content */}
@@ -113,7 +113,7 @@ export const EventDetails = ({ id = useParams()["id"] }) => {
                                     <Typography variant="h4" mt={3}>Gift Suggestion</Typography>
                                     <Typography mt={1}>{event.gift_suggestion}</Typography>
 
-                                    <Button
+                                    {/* <Button
                                         variant="contained"
                                         color="primary"
                                         size="small"
@@ -121,7 +121,7 @@ export const EventDetails = ({ id = useParams()["id"] }) => {
                                         to={`carpools`}
                                         sx={{ mt: 3 }}>
                                         View Carpools
-                                    </Button>
+                                    </Button> */}
                                 </CardContent>
 
                                 {/* Right Side - Image Collage */}
@@ -150,7 +150,7 @@ export const EventDetails = ({ id = useParams()["id"] }) => {
                                 </Box>
 
                             </Card>
-                        </Grid2>
+                        </Grid>
                     ))}
                 </Box>
 

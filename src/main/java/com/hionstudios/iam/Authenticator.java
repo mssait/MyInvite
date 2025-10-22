@@ -49,6 +49,7 @@ public class Authenticator {
         newResponse.put("email", userDetails.getEmail());
         newResponse.put("type", userDetails.getType());
         newResponse.put("roles", userDetails.getRoles());
+        newResponse.put("avatar", userDetails.getAvatar());
         return ResponseEntity.ok(newResponse);
     }
 

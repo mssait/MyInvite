@@ -4,7 +4,8 @@ import {
   GridRowModes,
   GridToolbarContainer,
   GridToolbarExport,
-  GridToolbarFilterButton
+  GridToolbarFilterButton,
+  Toolbar
 } from "@mui/x-data-grid-premium";
 import { IconPlus } from '@tabler/icons-react';
 import { useSnackbar } from "notistack";
@@ -73,25 +74,32 @@ export const BudgetType = () => {
 
   const AddToolbar = ({ handleAdd }) => {
     return (
-      <GridToolbarContainer>
-        <Button sx={{
-          mt: 1,
-          ml: 1,
-          color: "white",
-          backgroundColor: "primary.main",
-          "&:hover": {
-            backgroundColor: "primary.dark",
-          },
-        }} size='small' color="primary" startIcon={<IconPlus sx={{ color: "white" }} />} variant="contained" onClick={handleAdd}>
+      <Toolbar disableGutters sx={{ px: 1 }}>
+        <Button
+          sx={{
+            mt: 1,
+            ml: 1,
+            color: "white",
+            backgroundColor: "primary.main",
+            "&:hover": { backgroundColor: "primary.dark" },
+          }}
+          size="small"
+          color="primary"
+          startIcon={<IconPlus sx={{ color: "white" }} />}
+          variant="contained"
+          onClick={handleAdd}
+        >
           Add budget types
         </Button>
+
         <Box sx={{ mt: 1, ml: 1 }}>
           <GridToolbarFilterButton />
         </Box>
+
         <Box sx={{ mt: 1, ml: 1 }}>
           <GridToolbarExport />
         </Box>
-      </GridToolbarContainer>
+      </Toolbar>
     );
   };
 

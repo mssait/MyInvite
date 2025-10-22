@@ -14,8 +14,8 @@ public class HionUserDetailsService implements UserDetailsService {
     public HionUserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         try {
             DbUtil.open();
-            String sql = "Select Users.Id, Users.Name, Users.Email, Users.Password, User_Types.Type, Array(Select Role From Roles Join User_Roles On User_Roles.Role_Id = Roles.Id And User_Roles.User_Id = Users.Id) Roles From Users Join User_Types On User_Types.Id = Users.Type_Id Where Email = ? Or Phone_Number = ?";
-            return getUserDetails(sql, username);
+            String sql = "Select Users.Id, Users.Name, Users.Email, Users.Phone_Number, Users.Profile_Pic, Users.Password, User_Types.Type, Array(Select Role From Roles Join User_Roles On User_Roles.Role_Id = Roles.Id And User_Roles.User_Id = Users.Id) Roles From Users Join User_Types On User_Types.Id = Users.Type_Id Where Email = ? Or Phone_Number = ?";
+            return getUserDetails(sql, username, username);
         } finally {
             DbUtil.close();
         }

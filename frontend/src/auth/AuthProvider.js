@@ -30,4 +30,5 @@ export const getHomePage = () => {
     }
 }
 export const getName = () => localStorage.getItem('name')
+export const getEmail = () => localStorage.getItem('email')
 export const getAvatar = () => localStorage.getItem('avatar')

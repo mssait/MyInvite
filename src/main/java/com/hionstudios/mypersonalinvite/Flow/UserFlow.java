@@ -8,6 +8,7 @@ import com.hionstudios.db.Handler;
 import com.hionstudios.mypersonalinvite.model.Role;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.mypersonalinvite.model.UserRole;
+import com.hionstudios.time.TimeUtil;
 
 
 public class UserFlow {
@@ -46,5 +47,15 @@ public class UserFlow {
         user.set("is_active", is_active);
 
         return user.save() ? MapResponse.success() : MapResponse.failure();
+    }
+
+    public MapResponse dashboard(){
+        String sql = "Select (Select Count(*) From Users) As Total_Users, (Select Count(*) From Events) As Total_Events, (Select Count(*) From Events Where TO_CHAR(TO_TIMESTAMP(created_time / 1000), 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')) As Events_Created_This_Month, (Select Count(*) From Events Where Date > ?) As Upcoming_Events, (Select Count(*) From Events Where Date < ?) As Completed_Events, (Select Count(*) From Users Where TO_CHAR(TO_TIMESTAMP(created_time / 1000), 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')) As Users_Joined_This_Month";
+
+        long currentTime = TimeUtil.currentTime();
+
+        MapResponse dashboard = Handler.findFirst(sql, currentTime, currentTime);
+        MapResponse response = new MapResponse().put("dashboard", dashboard);
+        return response;
     }
 }

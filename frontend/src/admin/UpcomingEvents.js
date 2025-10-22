@@ -43,7 +43,6 @@ export const UpcomingEvents = () => {
             </Card>
             <ClientDataGrid
                 Toolbar={AddToolbar}
-                refresh={refresh}
                 ajax={{ url: "/api/event/upcoming" }}
                 columns={[
                     {

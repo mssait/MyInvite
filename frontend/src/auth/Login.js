@@ -16,6 +16,7 @@ import fetcher from "../utils/fetcher";
 import { useQuery } from "../utils/useQuery";
 import { clearAuthLocalStorage, getHomePage, isLoggedIn } from "./AuthProvider";
 import { useSnackbar } from "notistack";
+import config from "../config";
 
 const Login = () => {
     const { enqueueSnackbar } = useSnackbar();
@@ -29,8 +30,18 @@ const Login = () => {
             <Container maxWidth="sm">
                 <Card elevation={2}>
                     <CardContent>
-                        <Stack spacing={2} textAlign="center" justifyContent="center">
-                            <LogoSection />
+                        <Stack spacing={2} textAlign="center" justifyContent="center" alignItems={"center"}>
+                            <Box component={'img'} src="/logo-dark.png" sx={{ maxWidth: "30%", height: "auto", }} />
+
+                            {/* <img
+                                style={{
+                                    maxWidth: "30%",
+                                    height: "auto",
+                                    maxHeight: 150,
+                                    display: "block",
+                                    borderRadius: config.borderRadius
+                                }}
+                                src="/logo-dark.png" /> */}
                             <Typography
                                 variant="caption"
                                 fontSize="16px"
@@ -89,7 +100,7 @@ const Login = () => {
                                 }) => (
                                     <form noValidate onSubmit={handleSubmit}>
                                         <Grid container spacing={2}>
-                                            <Grid item xs={12}>
+                                            <Grid size={12}>
                                                 <FormControl fullWidth
                                                     error={Boolean(touched.username && errors.username)}>
                                                     <TextField
@@ -109,7 +120,7 @@ const Login = () => {
                                                     )}
                                                 </FormControl>
                                             </Grid>
-                                            <Grid item xs={12}>
+                                            <Grid size={12}>
                                                 <FormControl fullWidth
                                                     error={Boolean(touched.password && errors.password)}>
                                                     <PasswordField

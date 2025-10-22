@@ -1,15 +1,12 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.apache.tika.utils.SystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hionstudios.MapResponse;
@@ -383,9 +380,9 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select Event_Invites.Guest_Id, Event_Invites.Event_Id, Events.*, Event_Thumbnails.Image, Count(Guest_Rsvps.Rsvp) As Rsvp_Count, Count(Guest_Rsvps.Carpool_Expecting) As Carpool_Expecting_Count, Count(*) FILTER (Where Guest_Rsvps.Rsvp = 'Attending') AS attending_count From Event_Invites join Events On Events.Id = Event_Invites.Event_Id join Event_Thumbnails On Event_Thumbnails.Event_Id = Events.Id join Guest_Rsvps On Guest_Rsvps.Event_Invite_Id = Event_Invites.Id Where Guest_id = ? And Event_id = ? Group By Event_Invites.Guest_Id, Event_Invites.Event_Id, Events.Id, Event_Thumbnails.Image";
-        List<MapResponse> events = Handler.findAll(sql, userId, id);
+        String sql = "Select Event_Invites.Guest_Id, Event_Invites.Event_Id, Events.*, ARRAY_AGG(Distinct Event_Thumbnails.Image) As Images, Count(Guest_Rsvps.Rsvp) As Rsvp_Count, Count(Guest_Rsvps.Carpool_Expecting) As Carpool_Expecting_Count, Count(*) Filter (Where Guest_Rsvps.Rsvp = 'Attending') As Attending_Count FROM Event_Invites Join Events ON Events.Id = Event_Invites.Event_Id Join Event_Thumbnails ON Event_Thumbnails.Event_Id = Events.Id LEFT Join Guest_Rsvps ON Guest_Rsvps.Event_Invite_Id = Event_Invites.Id Where Event_Invites.Guest_Id = ? And Event_Invites.Event_Id = ? GROUP BY Event_Invites.Guest_Id, Event_Invites.Event_Id, Events.Id";
 
+        MapResponse events = Handler.findFirst(sql, userId, id);
         MapResponse response = new MapResponse().put("InvitedToEventDetails", events);
         return response;
     }
@@ -761,6 +758,13 @@ public class EventFlow {
 
         List<MapResponse> guest = Handler.findAll(sql, id);
         MapResponse response = new MapResponse().put("GuestList", guest);
+        return response;
+    }
+
+    public MapResponse getEventTypes(){
+        String sql = "Select * From Event_Types Order By Type Asc";
+        List<MapResponse> eventTypes = Handler.findAll(sql);
+        MapResponse response = new MapResponse().put("EventTypes", eventTypes);
         return response;
     }
 
