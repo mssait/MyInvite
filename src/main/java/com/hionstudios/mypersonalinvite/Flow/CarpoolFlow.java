@@ -1,5 +1,7 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.hionstudios.MapResponse;
@@ -12,25 +14,38 @@ import com.hionstudios.mypersonalinvite.model.CarpoolRequest;
 import com.hionstudios.mypersonalinvite.model.Notification;
 import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
+import com.hionstudios.time.TimeUtil;
 
 public class CarpoolFlow {
 
-    public MapResponse postCarpool(Long event_id, String car_model, String car_number, String car_color,
+    public MapResponse postCarpool(Long id, String car_model, String car_number, String car_color,
             int available_seats, boolean ladies_accompanied, String start_location, String start_date_time,
             String end_date_time, String notes) {
 
         Long user_id = UserUtil.getUserid();
+
+        Long parsedStartDate = TimeUtil.parse(start_date_time, "dd-MM-yyyy HH:mm:ss a");
+        Long parsedEndDate = TimeUtil.parse(end_date_time, "dd-MM-yyyy HH:mm:ss a");
+
+
+        // DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        // LocalTime parsedStartTime = LocalTime.parse(start_date_time, timeFormatter);
+        // long startTimeMillis = parsedStartTime.toSecondOfDay() * 1000L;
+
+        // LocalTime parsedEndTime = LocalTime.parse(end_date_time, timeFormatter);
+        // long endTimeMillis = parsedEndTime.toSecondOfDay() * 1000L;
+
         Carpool carpool = new Carpool();
-        carpool.set("event_id", event_id);
+        carpool.set("event_id", id);
         carpool.set("user_id", user_id);
         carpool.set("car_model", car_model);
         carpool.set("car_color", car_color);
         carpool.set("car_number", car_number);
-        carpool.set("available_seats", available_seats);
+        carpool.set("available_seat", available_seats);
         carpool.set("ladies_accompanied", ladies_accompanied);
         carpool.set("start_location", start_location);
-        carpool.set("start_date_time", start_date_time);
-        carpool.set("end_date_time", end_date_time);
+        carpool.set("start_date_time", parsedStartDate);
+        carpool.set("end_date_time", parsedEndDate);
         carpool.set("notes", notes);
 
         return carpool.insert() ? MapResponse.success() : MapResponse.failure("Failed to create carpool");
