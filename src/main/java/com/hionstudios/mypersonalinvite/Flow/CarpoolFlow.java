@@ -1,7 +1,5 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import com.hionstudios.MapResponse;
@@ -27,7 +25,6 @@ public class CarpoolFlow {
         Long parsedStartDate = TimeUtil.parse(start_date_time, "dd-MM-yyyy HH:mm:ss a");
         Long parsedEndDate = TimeUtil.parse(end_date_time, "dd-MM-yyyy HH:mm:ss a");
 
-
         // DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
         // LocalTime parsedStartTime = LocalTime.parse(start_date_time, timeFormatter);
         // long startTimeMillis = parsedStartTime.toSecondOfDay() * 1000L;
@@ -52,7 +49,7 @@ public class CarpoolFlow {
     }
 
     public MapResponse getCarpoolDetails(Long id) {
-        String sql = "Select * From Carpool Where id = ?";
+        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic From Carpools Join Users On Users.Id = Carpools.User_Id Where id = ?";
         MapResponse carpoolDetails = Handler.findFirst(sql, id);
         if (carpoolDetails == null) {
             return MapResponse.failure("Carpool not found");
@@ -209,8 +206,7 @@ public class CarpoolFlow {
 
     public MapResponse viewCarpool(Long event_id) {
 
-        String sql = "Select * From Carpool Where event_id = ?";
-
+        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Id As Event_Id From Carpools Join Events On Events.Id = Carpools.Event_Id Join Users On Users.Id = Events.Owner_Id Where event_id = ?";
         List<MapResponse> carpool = Handler.findAll(sql, event_id);
         MapResponse response = new MapResponse().put("carpool", carpool);
         return response;
