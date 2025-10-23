@@ -49,7 +49,7 @@ public class CarpoolFlow {
     }
 
     public MapResponse getCarpoolDetails(Long id) {
-        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic From Carpools Join Users On Users.Id = Carpools.User_Id Where id = ?";
+        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Address From Carpools Join Users On Users.Id = Carpools.User_Id Join Events On Events.Id = Carpools.Event_Id Where Carpools.Id = ?";
         MapResponse carpoolDetails = Handler.findFirst(sql, id);
         if (carpoolDetails == null) {
             return MapResponse.failure("Carpool not found");
@@ -206,7 +206,7 @@ public class CarpoolFlow {
 
     public MapResponse viewCarpool(Long event_id) {
 
-        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Id As Event_Id From Carpools Join Events On Events.Id = Carpools.Event_Id Join Users On Users.Id = Events.Owner_Id Where event_id = ?";
+        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Address From Carpools Join Events On Events.Id = Carpools.Event_Id Join Users On Users.Id = Carpools.User_Id Where Carpools.Event_Id = ?";
         List<MapResponse> carpool = Handler.findAll(sql, event_id);
         MapResponse response = new MapResponse().put("carpool", carpool);
         return response;
