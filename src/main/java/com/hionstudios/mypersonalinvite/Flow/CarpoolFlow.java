@@ -17,7 +17,7 @@ import com.hionstudios.time.TimeUtil;
 public class CarpoolFlow {
 
     public MapResponse postCarpool(Long id, String car_model, String car_number, String car_color,
-            int available_seats, boolean ladies_accompanied, String start_location, String start_date_time,
+            int available_seats, boolean ladies_accompanied, double start_location_latitude, double start_location_longitude, String start_date_time,
             String end_date_time, String notes) {
 
         Long user_id = UserUtil.getUserid();
@@ -40,7 +40,8 @@ public class CarpoolFlow {
         carpool.set("car_number", car_number);
         carpool.set("available_seat", available_seats);
         carpool.set("ladies_accompanied", ladies_accompanied);
-        carpool.set("start_location", start_location);
+        carpool.set("start_location_latitude", start_location_latitude);
+        carpool.set("start_location_longitude", start_location_longitude);
         carpool.set("start_date_time", parsedStartDate);
         carpool.set("end_date_time", parsedEndDate);
         carpool.set("notes", notes);
@@ -49,7 +50,7 @@ public class CarpoolFlow {
     }
 
     public MapResponse getCarpoolDetails(Long id) {
-        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Address From Carpools Join Users On Users.Id = Carpools.User_Id Join Events On Events.Id = Carpools.Event_Id Where Carpools.Id = ?";
+        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Address, Events.Location_Latitude As end_location_latitude, Events.Location_Longitude As end_location_longitude From Carpools Join Users On Users.Id = Carpools.User_Id Join Events On Events.Id = Carpools.Event_Id Where Carpools.Id = ?";
         MapResponse carpoolDetails = Handler.findFirst(sql, id);
         if (carpoolDetails == null) {
             return MapResponse.failure("Carpool not found");

@@ -28,12 +28,13 @@ public class CarpoolController {
             @RequestParam String car_color,
             @RequestParam int available_seats,
             @RequestParam boolean ladies_accompanied,
-            @RequestParam String start_location,
+            @RequestParam double start_location_latitude,
+            @RequestParam double start_location_longitude,
             @RequestParam String start_date_time,
             @RequestParam String end_date_time,
             @RequestParam(required = false) String notes) {
         return ((DbTransaction) () -> new CarpoolFlow().postCarpool(id, car_model, car_number, car_color,
-                available_seats, ladies_accompanied, start_location, start_date_time, end_date_time, notes)).write();
+                available_seats, ladies_accompanied, start_location_latitude, start_location_longitude, start_date_time, end_date_time, notes)).write();
 
     }
 
