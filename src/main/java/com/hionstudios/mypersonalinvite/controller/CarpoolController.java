@@ -20,7 +20,7 @@ import com.hionstudios.mypersonalinvite.Flow.CarpoolFlow;
 public class CarpoolController {
 
     @PostMapping("event/{id}/add")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> addCarpool(
             @PathVariable Long id,
             @RequestParam String car_model,
@@ -30,11 +30,12 @@ public class CarpoolController {
             @RequestParam boolean ladies_accompanied,
             @RequestParam double start_location_latitude,
             @RequestParam double start_location_longitude,
+            @RequestParam String address,
             @RequestParam String start_date_time,
             @RequestParam String end_date_time,
             @RequestParam(required = false) String notes) {
         return ((DbTransaction) () -> new CarpoolFlow().postCarpool(id, car_model, car_number, car_color,
-                available_seats, ladies_accompanied, start_location_latitude, start_location_longitude, start_date_time, end_date_time, notes)).write();
+                available_seats, ladies_accompanied, start_location_latitude, start_location_longitude, address, start_date_time, end_date_time, notes)).write();
 
     }
 
@@ -120,10 +121,10 @@ public class CarpoolController {
     }
 
     @GetMapping("event/{id}")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> viewCarpool(
-            @PathVariable Long event_id) {
-        return ((DbTransaction) () -> new CarpoolFlow().viewCarpool(event_id)).read();
+            @PathVariable Long id) {
+        return ((DbTransaction) () -> new CarpoolFlow().viewCarpool(id)).read();
     }
 
     @GetMapping("{id}/guest")
