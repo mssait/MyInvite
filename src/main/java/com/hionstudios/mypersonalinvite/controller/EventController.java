@@ -155,10 +155,10 @@ public class EventController {
         return ((DbTransaction) () -> new EventFlow().deleteGuestList(id, guestId)).write();
     }
 
-    @PutMapping("{id}/update-rsvp/{guestId}")
+    @PutMapping("{id}/update-rsvp")
     @IsUser
-    public ResponseEntity<MapResponse> updateRsvp(@PathVariable Long id, @PathVariable Long guestId, @RequestParam String rsvp) {
-        return ((DbTransaction) () -> new EventFlow().updateRsvp(id, guestId, rsvp)).write();
+    public ResponseEntity<MapResponse> updateRsvp(@PathVariable Long id, @RequestParam Long rsvp) {
+        return ((DbTransaction) () -> new EventFlow().updateRsvp(id, rsvp)).write();
     }
 
     @GetMapping("{id}/carpool-list")
@@ -236,6 +236,12 @@ public class EventController {
     @IsUser
     public ResponseEntity<MapResponse> getEventTypes(){
         return ((DbTransaction) () -> new EventFlow().getEventTypes()).read();
+    }
+
+    @GetMapping("rsvp")
+    @IsUser
+    public ResponseEntity<MapResponse> getRsvpStatuses(){
+        return ((DbTransaction) () -> new EventFlow().getRsvpStatuses()).read();
     }
 
 }

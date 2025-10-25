@@ -85,7 +85,7 @@ public class CarpoolController {
     @IsUser
     public ResponseEntity<MapResponse> addCarpoolRequest(
             @PathVariable Long id,
-            @RequestParam String no_of_people,
+            @RequestParam int no_of_people,
             @RequestParam boolean ladies_accompanied,
             @RequestParam(required = false) String notes) {
         return ((DbTransaction) () -> new CarpoolFlow().postCarpoolRequest(id, no_of_people, ladies_accompanied, notes))

@@ -380,7 +380,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select Event_Invites.Guest_Id, Event_Invites.Event_Id, Events.*, ARRAY_AGG(Distinct Event_Thumbnails.Image) As Images, Count(Guest_Rsvps.Rsvp) As Rsvp_Count, Count(Guest_Rsvps.Carpool_Expecting) As Carpool_Expecting_Count, Count(*) Filter (Where Guest_Rsvps.Rsvp = 'Attending') As Attending_Count FROM Event_Invites Join Events ON Events.Id = Event_Invites.Event_Id Join Event_Thumbnails ON Event_Thumbnails.Event_Id = Events.Id LEFT Join Guest_Rsvps ON Guest_Rsvps.Event_Invite_Id = Event_Invites.Id Where Event_Invites.Guest_Id = ? And Event_Invites.Event_Id = ? GROUP BY Event_Invites.Guest_Id, Event_Invites.Event_Id, Events.Id";
+        String sql = "Select Event_Invites.Guest_Id, Event_Invites.Event_Id, Event_Invites.Rsvp_Status_Id, Events.*, ARRAY_AGG(Distinct Event_Thumbnails.Image) As Images, Count(Guest_Rsvps.Rsvp) As Rsvp_Count, Count(Guest_Rsvps.Carpool_Expecting) As Carpool_Expecting_Count, Count(*) Filter (Where Guest_Rsvps.Rsvp = 'Attending') As Attending_Count FROM Event_Invites Join Events ON Events.Id = Event_Invites.Event_Id Join Event_Thumbnails ON Event_Thumbnails.Event_Id = Events.Id LEFT Join Guest_Rsvps ON Guest_Rsvps.Event_Invite_Id = Event_Invites.Id Where Event_Invites.Guest_Id = ? And Event_Invites.Event_Id = ? GROUP BY Event_Invites.Guest_Id, Event_Invites.Event_Id, Event_Invites.Rsvp_Status_Id, Events.Id";
 
         MapResponse events = Handler.findFirst(sql, userId, id);
         MapResponse response = new MapResponse().put("InvitedToEventDetails", events);
@@ -397,17 +397,17 @@ public class EventFlow {
         }
     }
 
-    public MapResponse updateRsvp(Long id, Long guestId, String rsvp) {
+    public MapResponse updateRsvp(Long id, Long rsvp) {
         Long userId = UserUtil.getUserid();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        EventInvite invite = EventInvite.findFirst("event_id = ? AND guest_id = ?", id, guestId);
+        EventInvite invite = EventInvite.findFirst("event_id = ? AND guest_id = ?", id, userId);
         if (invite == null) {
             return MapResponse.failure("They are not invited to this event");
         }
 
-        invite.set("rsvp", rsvp);
+        invite.set("rsvp_status_id", rsvp);
         invite.saveIt();
 
         return MapResponse.success("RSVP updated successfully");
@@ -765,6 +765,13 @@ public class EventFlow {
         String sql = "Select * From Event_Types Order By Type Asc";
         List<MapResponse> eventTypes = Handler.findAll(sql);
         MapResponse response = new MapResponse().put("EventTypes", eventTypes);
+        return response;
+    }
+
+    public MapResponse getRsvpStatuses(){
+        String sql = "Select * From Rsvp_Statuses Order By Status Asc";
+        List<MapResponse> RsvpTypes = Handler.findAll(sql);
+        MapResponse response = new MapResponse().put("RsvpTypes", RsvpTypes);
         return response;
     }
 

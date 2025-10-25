@@ -102,7 +102,7 @@ public class CarpoolFlow {
         return carpool.save() ? MapResponse.success() : MapResponse.failure("Failed to create carpool");
     }
 
-    public MapResponse postCarpoolRequest(Long id, String no_of_people, boolean ladies_accompanied,
+    public MapResponse postCarpoolRequest(Long id, int no_of_people, boolean ladies_accompanied,
             String notes) {
 
         Long user_id = UserUtil.getUserid();
@@ -131,7 +131,7 @@ public class CarpoolFlow {
                 notification.set("sender_id", user_id);
                 notification.set("receiver_id", ownerId);
                 notification.set("event_id", eventId);
-                notification.set("notification_type_id", NotificationType.CARPOOL);
+                notification.set("notification_type_id", NotificationType.getId(NotificationType.CARPOOL));
                 notification.set("content", "You have a new carpool request from " + senderName);
                 notification.set("is_read", false);
                 notification.set("href", "/events/" + eventId + "/carpools/" + id);
