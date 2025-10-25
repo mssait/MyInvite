@@ -87,7 +87,7 @@ public class CarpoolController {
             @PathVariable Long id,
             @RequestParam String no_of_people,
             @RequestParam boolean ladies_accompanied,
-            @RequestParam String notes) {
+            @RequestParam(required = false) String notes) {
         return ((DbTransaction) () -> new CarpoolFlow().postCarpoolRequest(id, no_of_people, ladies_accompanied, notes))
                 .write();
 
@@ -121,7 +121,7 @@ public class CarpoolController {
     }
 
     @GetMapping("event/{id}")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> viewCarpool(
             @PathVariable Long id) {
         return ((DbTransaction) () -> new CarpoolFlow().viewCarpool(id)).read();
