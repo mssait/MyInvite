@@ -168,7 +168,7 @@ public class EventController {
     }
 
     @GetMapping("{id}/view-budget")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> viewBudget(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().viewBudget(id)).read();
     }

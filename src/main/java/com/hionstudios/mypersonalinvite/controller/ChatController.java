@@ -33,7 +33,7 @@ public class ChatController {
         return ((DbTransaction) () -> new ChatFlow().getMessages(id, after_message_id)).read();
     }
 
-    @GetMapping("chat_list")
+    @GetMapping("list")
     @IsUser
     public ResponseEntity<MapResponse> getChatList() {
         return ((DbTransaction) () -> new ChatFlow().getChatList()).read();
