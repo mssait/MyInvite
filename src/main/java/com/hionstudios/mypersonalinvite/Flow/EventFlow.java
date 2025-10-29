@@ -743,7 +743,7 @@ public class EventFlow {
         return MapResponse.success("Budget item added");
     }
 
-    public MapResponse updateBudget(Long id, Long budget_type_id, Long actual_amount, Long planned_amount) {
+    public MapResponse updateBudget(Long id, Long planned_amount, Long budget_type_id, Long actual_amount ) {
         EventBudget budget = EventBudget.findById(id);
         if (budget == null)
             return MapResponse.failure("Budget item not found");

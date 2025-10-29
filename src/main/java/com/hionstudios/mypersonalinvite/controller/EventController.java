@@ -168,7 +168,7 @@ public class EventController {
     }
 
     @GetMapping("{id}/view-budget")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> viewBudget(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().viewBudget(id)).read();
     }
@@ -217,7 +217,7 @@ public class EventController {
             @RequestParam(required = false) Long planned_amount,
             @RequestParam(required = false) Long budget_type_id,
             @RequestParam(required = false) Long actual_amount ) {
-        return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, planned_amount, actual_amount)).write();
+        return ((DbTransaction) () -> new EventFlow().updateBudget(id, planned_amount, budget_type_id, actual_amount)).write();
     }
 
     @DeleteMapping("delete-budget/{id}")
