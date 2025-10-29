@@ -425,7 +425,7 @@ public class EventFlow {
         return response;
     }
 
-    public MapResponse viewBudget(Long id) {
+    public MapResponse updatesviewBudget(Long id) {
         Long userId = UserUtil.getUserid();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
