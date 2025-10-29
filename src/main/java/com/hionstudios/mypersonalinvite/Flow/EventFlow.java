@@ -720,7 +720,7 @@ public class EventFlow {
 
     // }
 
-    public MapResponse addBudget(Long id, Long budget_type_id, String amount, String description) {
+    public MapResponse addBudget(Long id, Long budget_type_id, Long amount, String description) {
         EventBudget budget = new EventBudget();
         budget.set("event_id", id);
         budget.set("budget_type_id", budget_type_id);
@@ -730,7 +730,7 @@ public class EventFlow {
         return MapResponse.success("Budget item added");
     }
 
-    public MapResponse updateBudget(Long id, Long budget_type_id, String amount, String description) {
+    public MapResponse updateBudget(Long id, Long budget_type_id, Long amount, String description) {
         EventBudget budget = EventBudget.findById(id);
         if (budget == null)
             return MapResponse.failure("Budget item not found");
@@ -772,6 +772,13 @@ public class EventFlow {
         String sql = "Select * From Rsvp_Statuses Order By Status Asc";
         List<MapResponse> RsvpTypes = Handler.findAll(sql);
         MapResponse response = new MapResponse().put("RsvpTypes", RsvpTypes);
+        return response;
+    }
+
+    public MapResponse getBudgetTypes(){
+        String sql = "Select * From Budget_Types Order By Id Asc";
+        List<MapResponse> budgetTypes = Handler.findAll(sql);
+        MapResponse response = new MapResponse().put("BudgetTypes", budgetTypes);
         return response;
     }
 

@@ -205,7 +205,7 @@ public class EventController {
     public ResponseEntity<MapResponse> addBudget(
             @PathVariable Long id,
             @RequestParam Long budget_type_id,
-            @RequestParam String amount,
+            @RequestParam Long amount,
             @RequestParam(required = false) String description) {
         return ((DbTransaction) () -> new EventFlow().addBudget(id, budget_type_id, amount, description)).write();
     }
@@ -214,7 +214,7 @@ public class EventController {
     @IsUser
     public ResponseEntity<MapResponse> updateBudget(
             @PathVariable Long id,
-            @RequestParam(required = false) String amount,
+            @RequestParam(required = false) Long amount,
             @RequestParam(required = false) Long budget_type_id,
             @RequestParam(required = false) String description ) {
         return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, amount, description)).write();
@@ -242,6 +242,12 @@ public class EventController {
     @IsUser
     public ResponseEntity<MapResponse> getRsvpStatuses(){
         return ((DbTransaction) () -> new EventFlow().getRsvpStatuses()).read();
+    }
+
+    @GetMapping("budget-types")
+    @IsUser
+    public ResponseEntity<MapResponse> getBudgetTypes(){
+        return ((DbTransaction) () -> new EventFlow().getBudgetTypes()).read();
     }
 
 }

@@ -8,12 +8,11 @@ import com.hionstudios.mypersonalinvite.model.EventTodoList;
 
 public class TodoFlow {
 
-    public MapResponse addTodo(Long event_id, String task) {
+    public MapResponse addTodo(Long id, String task) {
 
         EventTodoList todo = new EventTodoList();
-        todo.set("event_id", event_id);
+        todo.set("event_id", id);
         todo.set("todo", task);
-        todo.set("status", true);
         todo.insert();
 
         return MapResponse.success("To-do added");
@@ -44,11 +43,11 @@ public class TodoFlow {
         return MapResponse.success("To-do deleted");
     }
 
-    public MapResponse listTodos(Long event_id) {
+    public MapResponse listTodos(Long id) {
 
-        String sql = "Select * From Event_Todo_List Where Event_Id = ?";
+        String sql = "Select * From Event_Todo_Lists Where Event_Id = ?";
 
-        List<MapResponse> todos = Handler.findAll(sql, event_id);
+        List<MapResponse> todos = Handler.findAll(sql, id);
         MapResponse response = new MapResponse().put("todos", todos);
         return response;
     }

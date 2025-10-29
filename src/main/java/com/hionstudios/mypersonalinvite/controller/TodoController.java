@@ -21,9 +21,9 @@ public class TodoController {
     @PostMapping("event/{id}/add")
     @IsUser
     public ResponseEntity<MapResponse> addTodo(
-            @PathVariable Long event_id,
+            @PathVariable Long id,
             @RequestParam String task) {
-        return ((DbTransaction) () -> new TodoFlow().addTodo(event_id, task)).write();
+        return ((DbTransaction) () -> new TodoFlow().addTodo(id, task)).write();
     }
 
     @PutMapping("{id}/edit")
@@ -43,7 +43,7 @@ public class TodoController {
 
     @GetMapping("event/{id}")
     @IsUser
-    public ResponseEntity<MapResponse> listTodos(@PathVariable Long event_id) {
-        return ((DbTransaction) () -> new TodoFlow().listTodos(event_id)).read();
+    public ResponseEntity<MapResponse> listTodos(@PathVariable Long id) {
+        return ((DbTransaction) () -> new TodoFlow().listTodos(id)).read();
     }
 }
