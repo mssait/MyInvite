@@ -430,7 +430,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select *, Budget_Types.Type As budget_type From Event_Budgets Join Budget_Types On Budget_Types.Id = Event_Budgets.Budget_Type_Id Where Event_id = ?";
+        String sql = "Select Event_Budgets.*, Budget_Types.Type As budget_type From Event_Budgets Join Budget_Types On Budget_Types.Id = Event_Budgets.Budget_Type_Id Where Event_id = ?";
         List<MapResponse> budgets = Handler.findAll(sql, id);
 
         double totalActualBudget = 0.0;
