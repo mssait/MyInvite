@@ -720,27 +720,27 @@ public class EventFlow {
 
     // }
 
-    public MapResponse addBudget(Long id, Long budget_type_id, Long amount, String description) {
+    public MapResponse addBudget(Long id, Long budget_type_id, Long actual_amount, Long planned_amount) {
         EventBudget budget = new EventBudget();
         budget.set("event_id", id);
         budget.set("budget_type_id", budget_type_id);
-        budget.set("description", description);
-        budget.set("amount", amount);
+        budget.set("planned_amount", planned_amount);
+        budget.set("actual_amount", actual_amount);
         budget.insert();
         return MapResponse.success("Budget item added");
     }
 
-    public MapResponse updateBudget(Long id, Long budget_type_id, Long amount, String description) {
+    public MapResponse updateBudget(Long id, Long budget_type_id, Long actual_amount, Long planned_amount) {
         EventBudget budget = EventBudget.findById(id);
         if (budget == null)
             return MapResponse.failure("Budget item not found");
 
         if (budget_type_id != null)
             budget.set("budget_type_id", budget_type_id);
-        if (description != null)
-            budget.set("description", description);
-        if (amount != null)
-            budget.set("amount", amount);
+        if (actual_amount != null)
+            budget.set("actual_amount", actual_amount);
+        if (planned_amount != null)
+            budget.set("planned_amount", planned_amount);
 
         return budget.saveIt() ? MapResponse.success("Budget item updated") : MapResponse.failure();
     }

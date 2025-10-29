@@ -45,7 +45,7 @@ public class EventController {
     }
 
     @GetMapping("{id}/details")
-    @IsAdminAndUser
+    // @IsAdminAndUser
     public ResponseEntity<MapResponse> getEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> new EventFlow().getEventDetails(id)).read();
     }
@@ -205,19 +205,19 @@ public class EventController {
     public ResponseEntity<MapResponse> addBudget(
             @PathVariable Long id,
             @RequestParam Long budget_type_id,
-            @RequestParam Long amount,
-            @RequestParam(required = false) String description) {
-        return ((DbTransaction) () -> new EventFlow().addBudget(id, budget_type_id, amount, description)).write();
+            @RequestParam Long planned_amount,
+            @RequestParam Long actual_amount) {
+        return ((DbTransaction) () -> new EventFlow().addBudget(id, budget_type_id, planned_amount, actual_amount)).write();
     }
 
     @PutMapping("edit-budget/{id}")
     @IsUser
     public ResponseEntity<MapResponse> updateBudget(
             @PathVariable Long id,
-            @RequestParam(required = false) Long amount,
+            @RequestParam(required = false) Long planned_amount,
             @RequestParam(required = false) Long budget_type_id,
-            @RequestParam(required = false) String description ) {
-        return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, amount, description)).write();
+            @RequestParam(required = false) Long actual_amount ) {
+        return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, planned_amount, actual_amount)).write();
     }
 
     @DeleteMapping("delete-budget/{id}")
