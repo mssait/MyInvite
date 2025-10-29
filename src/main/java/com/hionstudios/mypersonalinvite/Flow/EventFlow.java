@@ -240,7 +240,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('image', Event_Thumbnails.image)) FILTER (WHERE Event_Thumbnails.Id IS NOT NULL), '[]') AS Thumbnails, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('Planned_amount', Event_Budgets.Planned_Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) FILTER (WHERE Event_Budgets.Id IS NOT NULL), '[]') AS Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > ? Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('image', Event_Thumbnails.image)) FILTER (WHERE Event_Thumbnails.Id IS NOT NULL), '[]') AS Thumbnails, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('Planned_amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) FILTER (WHERE Event_Budgets.Id IS NOT NULL), '[]') AS Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > ? Group By Events.Id Order By Events.Date Desc";
 
         long currentTime = TimeUtil.currentTime();
         List<MapResponse> events = Handler.findAll(sql_1, userId, currentTime);
@@ -256,7 +256,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Planned_Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date < ? Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date < ? Group By Events.Id Order By Events.Date Desc";
 
         List<MapResponse> events = Handler.findAll(sql_1, userId, now);
 
@@ -269,7 +269,7 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Planned_Amount, 'description', Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? Group By Events.Id Order By Events.Date Desc";
 
         List<MapResponse> events = Handler.findAll(sql_1, userId);
 
