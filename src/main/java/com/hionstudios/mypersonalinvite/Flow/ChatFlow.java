@@ -12,13 +12,13 @@ import com.hionstudios.mypersonalinvite.model.EventMessage;
 import com.hionstudios.mypersonalinvite.model.EventMessageRead;
 
 public class ChatFlow {
-    public MapResponse sendMessage(long event_id, String messageText) {
+    public MapResponse sendMessage(long id, String messageText) {
         Long userId = UserUtil.getUserid();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
         EventMessage message = new EventMessage();
-        message.set("event_id", event_id);
+        message.set("event_id", id);
         message.set("sender_id", userId);
         message.set("message", messageText);
         message.insert();
@@ -26,7 +26,8 @@ public class ChatFlow {
         return MapResponse.success("Message sent").put("message_id", message.getLongId());
     }
 
-    public MapResponse getMessages(long event_id, Long afterMessageId) {
+    public MapResponse getMessages(long id, Long afterMessageId) {
+        Long userId = UserUtil.getUserid();
         StringBuilder sql = new StringBuilder(
                 "Select Event_Messages.*, Users.Id As sender_id, Users.Name As sender_name, Users.Profile_Pic From Event_Messages Join Users On Users.Id = Event_Messages.Sender_Id Where Event_Messages.Event_Id = ?");
 
@@ -36,10 +37,32 @@ public class ChatFlow {
         sql.append("Order By Event_Messages.created_time Asc");
 
         List<MapResponse> messages = afterMessageId == null
-                ? Handler.findAll(sql.toString(), event_id)
-                : Handler.findAll(sql.toString(), event_id, afterMessageId);
+                ? Handler.findAll(sql.toString(), id)
+                : Handler.findAll(sql.toString(), id, afterMessageId);
+
+        for (MapResponse msg : messages) {
+            msg.put("user_id", userId);
+        }
 
         return MapResponse.success().put("messages", messages);
+    }
+
+    public MapResponse deleteMessage(Long id) {
+        Long userId = UserUtil.getUserid();
+        if (userId == null || userId <= 0)
+            return MapResponse.failure("User not authenticated");
+
+        EventMessage message = EventMessage.findById(id);
+        if (message == null) {
+            return MapResponse.failure("Message not found");
+        }
+
+        if (!message.getLong("sender_id").equals(userId)) {
+            return MapResponse.failure("You can only delete your own messages");
+        }
+
+        message.delete();
+        return MapResponse.success("Message deleted");
     }
 
     public MapResponse markAsRead(long message_id) {
@@ -62,7 +85,7 @@ public class ChatFlow {
     }
 
     public MapResponse getMessageReadStatus(long event_id, long message_id) {
-        //Total Participants
+        // Total Participants
         String participantSql = "Select Distinct Guest_Id As Id From Event_Invites Where Event_Id = ? Union Select Owner_Id As Id From Events Where Id = ?";
         List<MapResponse> participants = Handler.findAll(participantSql, event_id, event_id);
 
