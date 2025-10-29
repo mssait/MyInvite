@@ -116,4 +116,18 @@ public class ChatFlow {
                 .put("unread_user_ids", notSeenUsers);
     }
 
+    public MapResponse getChatList() {
+        // Long userId = UserUtil.getUserid();
+        long userId = 2;    
+    
+        String sql = "SELECT e.id AS event_id, e.title AS event_name, (SELECT et.image FROM Event_Thumbnails et WHERE et.event_id = e.id ORDER BY et.id ASC LIMIT 1) AS event_thumbnail, (SELECT em.message FROM Event_Messages em WHERE em.event_id = e.id ORDER BY em.created_time DESC LIMIT 1) AS last_message FROM Events e WHERE e.owner_id = ? OR e.id IN (SELECT event_id FROM Event_Invites WHERE guest_id = ?) ORDER BY e.created_time DESC";
+
+        List<MapResponse> chatList = Handler.findAll(sql, userId, userId);
+    
+        return MapResponse.success()
+                .put("chats", chatList)
+                .put("status", "success");
+    }
+    
+
 }

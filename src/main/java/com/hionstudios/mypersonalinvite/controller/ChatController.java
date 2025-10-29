@@ -18,7 +18,7 @@ import com.hionstudios.mypersonalinvite.Flow.ChatFlow;
 @RequestMapping("api/chat")
 public class ChatController {
     @PostMapping("event/{id}/send")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> sendMessage(
             @PathVariable long id,
             @RequestParam String messageText) {
@@ -26,29 +26,36 @@ public class ChatController {
     }
 
     @GetMapping("event/{id}")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> getMessages(
             @PathVariable long id,
             @RequestParam(required = false) Long after_message_id) {
         return ((DbTransaction) () -> new ChatFlow().getMessages(id, after_message_id)).read();
     }
 
+    @GetMapping("chat_list")
+    @IsUser
+    public ResponseEntity<MapResponse> getChatList() {
+        return ((DbTransaction) () -> new ChatFlow().getChatList()).read();
+    }
+
     @DeleteMapping("{id}/delete")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> deleteMessage(
             @PathVariable long id) {
         return ((DbTransaction) () -> new ChatFlow().deleteMessage(id)).write();
     }
+    
 
     @PostMapping("mark-read")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> markAsRead(
             @RequestParam long message_id) {
         return ((DbTransaction) () -> new ChatFlow().markAsRead(message_id)).write();
     }
 
     @GetMapping("message-read-status")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> getMessageReadStatus(
             @RequestParam long event_id,
             @RequestParam long message_id) {
