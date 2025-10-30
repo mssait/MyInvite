@@ -1,15 +1,15 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
-
 import java.util.List;
 
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
+import com.hionstudios.iam.UserUtil;
 import com.hionstudios.mypersonalinvite.model.Role;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.mypersonalinvite.model.UserRole;
+import com.hionstudios.mypersonalinvite.model.UserType;
 import com.hionstudios.time.TimeUtil;
-
 
 public class UserFlow {
     public MapResponse getUsers() {
@@ -24,12 +24,29 @@ public class UserFlow {
         return response;
     }
 
-    public MapResponse addUser(String name, String password, String phone_number) {
+    public MapResponse editProfile(String name, String phone_number, String password, String email) {
+
+        long userId = UserUtil.getUserid();
+
+        User user = User.findById(3);
+        if (user == null) {
+            return MapResponse.failure("User not found");
+        }
+        user.set("name", name);
+        user.set("email", email);
+        user.set("phone_number", phone_number);
+        user.set("password", password);
+
+        return user.save() ? MapResponse.success() : MapResponse.failure();
+    }
+
+    public MapResponse addUser(String name, String phone_number, String password) {
 
         User user = new User();
         user.set("name", name);
-        user.set("password", password);
         user.set("phone_number", phone_number);
+        user.set("password", password);
+        user.set("type_id", UserType.getId(UserType.USER));
         user.insert();
 
         UserRole role = new UserRole();
@@ -43,13 +60,13 @@ public class UserFlow {
         User user = User.findById(id);
         if (user == null) {
             return MapResponse.failure("User not found");
-        }       
+        }
         user.set("is_active", is_active);
 
         return user.save() ? MapResponse.success() : MapResponse.failure();
     }
 
-    public MapResponse dashboard(){
+    public MapResponse dashboard() {
         String sql = "Select (Select Count(*) From Users) As Total_Users, (Select Count(*) From Events) As Total_Events, (Select Count(*) From Events Where TO_CHAR(TO_TIMESTAMP(created_time / 1000), 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')) As Events_Created_This_Month, (Select Count(*) From Events Where Date > ?) As Upcoming_Events, (Select Count(*) From Events Where Date < ?) As Completed_Events, (Select Count(*) From Users Where TO_CHAR(TO_TIMESTAMP(created_time / 1000), 'YYYY-MM') = TO_CHAR(NOW(), 'YYYY-MM')) As Users_Joined_This_Month";
 
         long currentTime = TimeUtil.currentTime();
