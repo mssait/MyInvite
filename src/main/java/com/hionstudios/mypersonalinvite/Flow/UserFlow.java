@@ -28,7 +28,7 @@ public class UserFlow {
 
         long userId = UserUtil.getUserid();
 
-        User user = User.findById(3);
+        User user = User.findById(userId);
         if (user == null) {
             return MapResponse.failure("User not found");
         }
