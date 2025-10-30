@@ -14,7 +14,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 public class MailUtil {
     private static final Logger LOGGER = Logger.getLogger(MailUtil.class.getName());
     private static final String USERNAME = "emailapikey";
-    private static final String PASSWORD = "PHtE6r0LRevuiGYn+xlTsPW+QJP3Y4wu/Llvf1JEsdxDXKRRS00D+YwvmzK2qEh/AfRBFqKZno1rsOiZsunTI2nrZzweDWqyqK3sx/VYSPOZsbq6x00ZuFQZcEPeU4LocNVv0yfVudnaNA==";
+    private static final String PASSWORD = "PHtE6r1ZRr2/iGcpoUVV5aCwFZamMI8tq+xiLgZB448RCfULTk1Uqt56kjXi/0gqAaMTR/HIwI9gs7ye4eiDIWrqPWwZCWqyqK3sx/VYSPOZsbq6x00Zs1UdcUffUY/nctZt1S3RuN/aNA==";
 
     private static JavaMailSenderImpl getMailSender() {
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
@@ -62,19 +62,19 @@ public class MailUtil {
 
     public static void main(String[] args) {
 
-        MailSenderFrom from = new MailSenderFrom("stardiozacademy@stardioz.com", "Stardioz");
+        MailSenderFrom from = new MailSenderFrom("support@mypersonalinvite.com", "My Invite");
 
-        String to = "sanjay.sj2707@gmail.com";
+        String to = "eanok072000@gmail.com";
 
         String subject = "Welcome to MyInvite";
 
         String htmlContent = "<html> <head> <title>Welcome to MyInvite</title></head> <body>"
                 + "<p>Dear Sanjay,</p>"
-                + "<p>Thank you for registering in Stardioz.</p>"
+                + "<p>Thank you for registering in MyInvite.</p>"
                 + "<p>Your registration was successful, and our team will verify your details shortly. You will be notified once the verification process is complete.</p>"
                 + "<p>If you have any questions in the meantime, feel free to contact our support team.</p>"
                 + "<p>We look forward to working with you!</p>"
-                + "<p>Best regards,<br>Ducktail Team</p>"
+                + "<p>Best regards,<br>MyInvite Team</p>"
                 + "</body></html>";
 
         MailUtil.sendMail(from, to, subject, htmlContent, true);

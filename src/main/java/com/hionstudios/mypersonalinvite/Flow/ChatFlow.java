@@ -119,7 +119,7 @@ public class ChatFlow {
     public MapResponse getChatList() {  
         Long userId = UserUtil.getUserid();
 
-        String sql = "Select Events.id, Events.title, (Select Event_Thumbnails.image FROM Event_Thumbnails Where Event_Thumbnails.event_id = Events.id Order BY Event_Thumbnails.id Asc Limit 1), (Select Event_Messages.message FROM Event_Messages Where Event_Messages.event_id = Events.id Order BY Event_Messages.created_time Desc Limit 1) FROM Events Where Events.owner_id = ? OR Events.id In (Select Event_Invites.event_id FROM Event_Invites Where Event_Invites.guest_id = ?) Order BY Events.created_time Desc";
+        String sql = "SELECT Events.id, Events.title, (SELECT Event_Thumbnails.image FROM Event_Thumbnails WHERE Event_Thumbnails.event_id = Events.id ORDER BY Event_Thumbnails.id ASC LIMIT 1) AS event_thumbnail, (SELECT jsonb_build_object('message', Event_Messages.message, 'last_msg_time', Event_Messages.created_time) FROM Event_Messages WHERE Event_Messages.event_id = Events.id ORDER BY Event_Messages.created_time DESC LIMIT 1) AS last_message FROM Events WHERE Events.owner_id = ? OR Events.id IN (SELECT Event_Invites.event_id FROM Event_Invites WHERE Event_Invites.guest_id = ?) ORDER BY Events.created_time DESC";
 
         List<MapResponse> chatList = Handler.findAll(sql, userId, userId);
 

@@ -182,7 +182,7 @@ public class EventController {
     }
 
     @PostMapping("{id}/add-guest-list")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> addEventGuest(
             @PathVariable Long id,
             @RequestParam(required = false) List<String> emailList,
