@@ -767,7 +767,7 @@ public class EventFlow {
     }
 
     public MapResponse getGuestList(Long id) {
-        String sql = "Select Event_Invites.* Users.Name, Users.Phone_Nummber, Users.Profile_Pic From Event_Invites Join Users On Users.Id = Event_Invites.Guest_Id Where Event_Invites.Event_Id =? Order By Event_Invites.Created_Time Desc";
+        String sql = "Select Event_Invites.*, Rsvp_Statuses.Status, Users.Name, Users.Phone_Number, Users.Profile_Pic, Carpools.Id As Carpool_Id From Event_Invites Join Users On Users.Id = Event_Invites.Guest_Id Join Rsvp_Statuses On Rsvp_Statuses.Id = Event_Invites.Rsvp_Status_Id Left Join Carpools On Carpools.Event_Id = Event_Invites.Event_Id And Carpools.User_Id = Event_Invites.Guest_Id Where Event_Invites.Event_Id = ? Order By Event_Invites.Created_Time Desc";
 
         List<MapResponse> guest = Handler.findAll(sql, id);
         MapResponse response = new MapResponse().put("GuestList", guest);
