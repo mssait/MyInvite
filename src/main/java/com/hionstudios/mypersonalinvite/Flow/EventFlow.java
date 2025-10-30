@@ -430,11 +430,24 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql = "Select * From Event_Budgets Where Event_id = ?";
+        String sql = "Select Event_Budgets.*, Budget_Types.Type As budget_type From Event_Budgets Join Budget_Types On Budget_Types.Id = Event_Budgets.Budget_Type_Id Where Event_id = ?";
         List<MapResponse> budgets = Handler.findAll(sql, id);
 
-        MapResponse response = new MapResponse().put("BudgetList", budgets);
-        return response;
+        double totalActualBudget = 0.0;
+        for (MapResponse budget : budgets) {
+            Object actualAmountObj = budget.get("actual_amount");
+            if (actualAmountObj != null) {
+                try {
+                    totalActualBudget += Double.parseDouble(actualAmountObj.toString());
+                } catch (NumberFormatException e) {
+                }
+            }
+        }
+    
+        return MapResponse.success()
+                .put("BudgetList", budgets)
+                .put("total_actual_budget", totalActualBudget);
+
     }
 
     public MapResponse postEventGuest(Long id, List<String> emailList, List<Map<String, String>> guestList) {
@@ -720,7 +733,7 @@ public class EventFlow {
 
     // }
 
-    public MapResponse addBudget(Long id, Long budget_type_id, Long actual_amount, Long planned_amount) {
+    public MapResponse addBudget(Long id, Long budget_type_id, Long planned_amount, Long actual_amount ) {
         EventBudget budget = new EventBudget();
         budget.set("event_id", id);
         budget.set("budget_type_id", budget_type_id);
@@ -730,7 +743,7 @@ public class EventFlow {
         return MapResponse.success("Budget item added");
     }
 
-    public MapResponse updateBudget(Long id, Long budget_type_id, Long actual_amount, Long planned_amount) {
+    public MapResponse updateBudget(Long id, Long planned_amount, Long budget_type_id, Long actual_amount ) {
         EventBudget budget = EventBudget.findById(id);
         if (budget == null)
             return MapResponse.failure("Budget item not found");

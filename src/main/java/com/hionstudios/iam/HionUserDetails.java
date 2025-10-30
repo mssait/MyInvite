@@ -44,7 +44,7 @@ public class HionUserDetails implements UserDetails {
         this.userid = (long) userDetails.get("id");
         this.name = (String) userDetails.get("name");
         this.type = (String) userDetails.get("type");
-        this.avatar = (String) userDetails.get("avatar");
+        this.avatar = (String) userDetails.get("profile_pic");
         Object roleObj = userDetails.get("roles");
         if (roleObj instanceof ArrayList<?>) {
             ((ArrayList<?>) roleObj).forEach(role -> {

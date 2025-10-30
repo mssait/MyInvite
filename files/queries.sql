@@ -32,14 +32,32 @@ CREATE TABLE USERS (
     PASSWORD_RESET_TOKEN_EXPIRY BIGINT
 );
 
-INSERT INTO USERS (TYPE_ID, NAME, EMAIL, PHONE_NUMBER, PASSWORD)
+INSERT INTO USERS (TYPE_ID, NAME, EMAIL, PHONE_NUMBER, PASSWORD, PROFILE_PIC)
 VALUES ( 
      1,
     'Sanjay',
     'sanjay@hionstudios.com', 
     '7397541499',
-    'password'
-);
+    'password',
+    'fgh5a5a9fdd661b51450faab7bc3e4056d8cd'
+),
+( 
+     2,
+    'Eanok',
+    'eanok@hionstudios.com', 
+    '7397541498',
+    'password',
+    'fgh5a35b55322c6af4c298eda5d437deb5507'
+),
+( 
+     2,
+    'Ajay',
+    'ajay@hionstudios.com', 
+    '7397541497',
+    'password',
+    'fgh5a6bf50ddbc2044702a2a63828df227a6f'
+)
+;
 
 CREATE TABLE USER_ROLES (
     USER_ID BIGINT REFERENCES USERS(ID),
@@ -49,9 +67,17 @@ CREATE TABLE USER_ROLES (
 
 INSERT INTO USER_ROLES (USER_ID, ROLE_ID)
 VALUES (
-     1,
-     1
-);
+         1,
+         1
+       ),
+       (
+         2,
+         2
+       ),
+       (
+        3,
+        2
+       );
 
 CREATE TABLE IF NOT EXISTS OAUTHS (
     ID BIGSERIAL PRIMARY KEY,
@@ -73,6 +99,19 @@ CREATE TABLE IF NOT EXISTS EVENT_TYPES (
     TYPE VARCHAR(100) UNIQUE,
     IMAGE VARCHAR(250)
 );
+
+INSERT INTO EVENT_TYPES (TYPE, IMAGE)
+VALUES
+	('Weddings & Engagements', 'fgh5a4ec15fbfae9c4ce2bed9d949f95f8eae'),
+    ('Birthday Parties', 'fgh5a52cd367202e645aa9cbf7c9982ba2b6f'),
+    ('Festivals & Cultural Events', 'fgh5a63d2b29747454f95987518bffab1827c'),
+    ('Corporate Events', 'fgh5a5833b695c7794554af1477002eb94804'),
+    ('Family Gatherings', 'fgh5a0e0787c36b374f7d85c35b2d92d3e360'),
+    ('Concerts & Entertainment', 'fgh5a8c18b01ad49141f9ab2a63b234557397'),
+    ('Community & Networking Events', 'fgh5a790bb15c590d45648121b804cbdaaec8'),
+    ('Workshops & Training', 'fgh5ae1b9443e731047da8020d5fbb170094a'),
+    ('Pre/Post Wedding Events', 'fgh5ab4a47be1cb7f4a929b5ee6c494d04b47'),
+    ('Others', 'fgh5a17e3336827f943f3926e84acc2169e08');
 
 CREATE TABLE IF NOT EXISTS BUDGET_TYPES (
     ID BIGSERIAL PRIMARY KEY,
@@ -133,7 +172,7 @@ CREATE TABLE IF NOT EXISTS EVENTS (
     ADDRESS VARCHAR(300),
     GIFT_SUGGESTION TEXT,
     LOCATION_LATITUDE NUMERIC(10, 7),
-    LOCATION_LOGITUDE NUMERIC(10, 7),
+    LOCATION_LONGITUDE NUMERIC(10, 7),
     COMPLETED BOOLEAN DEFAULT FALSE,
     CREATED_TIME BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())*1000
 );

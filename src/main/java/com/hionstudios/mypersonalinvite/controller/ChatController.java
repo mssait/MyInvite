@@ -1,6 +1,7 @@
 package com.hionstudios.mypersonalinvite.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,18 +20,32 @@ public class ChatController {
     @PostMapping("event/{id}/send")
     @IsUser
     public ResponseEntity<MapResponse> sendMessage(
-            @PathVariable long event_id,
+            @PathVariable long id,
             @RequestParam String messageText) {
-        return ((DbTransaction) () -> new ChatFlow().sendMessage(event_id, messageText)).write();
+        return ((DbTransaction) () -> new ChatFlow().sendMessage(id, messageText)).write();
     }
 
     @GetMapping("event/{id}")
     @IsUser
     public ResponseEntity<MapResponse> getMessages(
-            @PathVariable long event_id,
+            @PathVariable long id,
             @RequestParam(required = false) Long after_message_id) {
-        return ((DbTransaction) () -> new ChatFlow().getMessages(event_id, after_message_id)).read();
+        return ((DbTransaction) () -> new ChatFlow().getMessages(id, after_message_id)).read();
     }
+
+    @GetMapping("list")
+    @IsUser
+    public ResponseEntity<MapResponse> getChatList() {
+        return ((DbTransaction) () -> new ChatFlow().getChatList()).read();
+    }
+
+    @DeleteMapping("{id}/delete")
+    @IsUser
+    public ResponseEntity<MapResponse> deleteMessage(
+            @PathVariable long id) {
+        return ((DbTransaction) () -> new ChatFlow().deleteMessage(id)).write();
+    }
+    
 
     @PostMapping("mark-read")
     @IsUser
