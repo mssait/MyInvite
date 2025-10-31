@@ -17,7 +17,8 @@ import com.hionstudios.time.TimeUtil;
 public class CarpoolFlow {
 
     public MapResponse postCarpool(Long id, String car_model, String car_number, String car_color,
-            int available_seats, boolean ladies_accompanied, double start_location_latitude, double start_location_longitude, String address, String start_date_time,
+            int available_seats, boolean ladies_accompanied, double start_location_latitude,
+            double start_location_longitude, String address, String start_date_time,
             String end_date_time, String notes) {
 
         Long user_id = UserUtil.getUserid();
@@ -223,15 +224,24 @@ public class CarpoolFlow {
         return new MapResponse().put("guests", guests);
     }
 
-    public MapResponse viewMyCarpools(){
+    public MapResponse viewMyCarpools() {
 
-        // Long user_id = UserUtil.getUserid();
-        long user_id = 2;
+        Long user_id = UserUtil.getUserid();
 
         String sql = "Select Carpools.*, Events.Title, Events.Address As Event_Address, (Select Event_Thumbnails.Image From Event_Thumbnails Where Event_Thumbnails.Event_Id = Events.Id Order By Events.Id Desc Limit 1) As Event_Thummnail From Carpools Join Events On Events.Id = Carpools.Event_Id Where Carpools.User_Id = ?";
 
         List<MapResponse> carpool = Handler.findAll(sql, user_id);
         MapResponse response = new MapResponse().put("carpool", carpool);
+        return response;
+    }
+
+    public MapResponse viewMyCarpoolRequests() {
+        Long user_id = UserUtil.getUserid();
+
+        String sql = "Select Carpool_Requests.*, Carpool_Guest_Statuses.Status, Carpools.Event_Id, Events.Title, Events.Address As Event_Address, (Select Event_Thumbnails.Image From Event_Thumbnails Where Event_Thumbnails.Event_Id = Events.Id Order By Events.Id Desc Limit 1) As Event_Thummnail From Carpool_Requests Join Carpool_Guest_Statuses On Carpool_Guest_Statuses.Id = Carpool_Requests.Carpool_Guest_Status_Id Join Carpools On Carpools.Id = Carpool_Requests.Carpool_Id Join Events On Events.Id = Carpools.Event_Id Where Carpool_Requests.Guest_Id = ?";
+
+        List<MapResponse> carpoolRequests = Handler.findAll(sql, user_id);
+        MapResponse response = new MapResponse().put("carpool_requests", carpoolRequests);
         return response;
     }
 }

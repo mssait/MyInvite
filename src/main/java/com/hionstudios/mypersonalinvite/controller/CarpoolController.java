@@ -138,4 +138,10 @@ public class CarpoolController {
     public ResponseEntity<MapResponse> viewMyCarpools() {
         return ((DbTransaction) () -> new CarpoolFlow().viewMyCarpools()).read();
     }
+
+    @GetMapping("my-requests")
+    @IsUser
+    public ResponseEntity<MapResponse> viewMyCarpoolRequests() {
+        return ((DbTransaction) () -> new CarpoolFlow().viewMyCarpoolRequests()).read();
+    }
 }
