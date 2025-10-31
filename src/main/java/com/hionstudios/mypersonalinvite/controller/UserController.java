@@ -55,6 +55,13 @@ public class UserController {
         return ((DbTransaction) () -> new UserFlow().addUser(name, phone_number, password)).write();
     }
 
+    @PutMapping("verify-phone")
+    public ResponseEntity<MapResponse> verifyPhone(
+            @RequestParam String phone_number,
+            @RequestParam String otp) {
+        return ((DbTransaction) () -> new UserFlow().verifyPhone(phone_number, otp)).write();
+    }
+
     @PostMapping("{id}/change-status")
     @IsAdmin
     public ResponseEntity<MapResponse> editUsers(

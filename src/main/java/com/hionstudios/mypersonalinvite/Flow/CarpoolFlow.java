@@ -166,11 +166,11 @@ public class CarpoolFlow {
     public MapResponse respondToCarpoolRequest(Long id, boolean response) {
         CarpoolRequest request = CarpoolRequest.findById(id);
         Carpool carpool = Carpool.findById(request.getLong("carpool_id"));
-        int available_seats = carpool.getInteger("available_seats");
+        int available_seats = carpool.getInteger("available_seat");
         int filled_seats = carpool.getInteger("filled_seats");
         int noOfPeople = request.getInteger("no_of_people");
         int currentSeats = available_seats - filled_seats;
-        if (currentSeats <= noOfPeople) {
+        if (currentSeats >= noOfPeople) {
             if (response) {
                 request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
                 CarpoolGuest guest = new CarpoolGuest();
@@ -180,7 +180,7 @@ public class CarpoolFlow {
                 guest.insert();
 
                 carpool.set("filled_seats", filled_seats + noOfPeople);
-                boolean isInserted = carpool.insert();
+                boolean isInserted = carpool.saveIt();
                 Long user_id = UserUtil.getUserid();
                 Long requestedId = request.getLong("guest_id");
                 Long eventId = carpool.getLong("event_id");
@@ -189,7 +189,7 @@ public class CarpoolFlow {
                     notification.set("sender_id", user_id);
                     notification.set("receiver_id", requestedId);
                     notification.set("event_id", eventId);
-                    notification.set("notification_type_id", NotificationType.CARPOOL);
+                    notification.set("notification_type_id", NotificationType.getId(NotificationType.CARPOOL));
                     notification.set("content", "Your carpool request has been accepted");
                     notification.set("is_read", false);
                     notification.set("href", "/events/" + eventId + "/carpools/" + id);

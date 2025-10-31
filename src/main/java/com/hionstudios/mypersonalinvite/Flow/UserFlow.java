@@ -53,18 +53,53 @@ public class UserFlow {
 
     public MapResponse addUser(String name, String phone_number, String password) {
 
+        User existing = User.findFirst("phone_number = ? And phone_verified = ?", phone_number, true);
+        if (existing != null) {
+            return MapResponse.failure("Phone number already registered");
+        }
+
+        int otp = (int) (Math.random() * 900000) + 100000;
+        long expiry = System.currentTimeMillis() + (30 * 60 * 1000); // 30 mins
+
         User user = new User();
         user.set("name", name);
         user.set("phone_number", phone_number);
         user.set("password", password);
         user.set("type_id", UserType.getId(UserType.USER));
+        user.set("otp_code", otp);
+        user.set("otp_expiry", expiry);
         user.insert();
 
         UserRole role = new UserRole();
         role.set("user_id", user.getLongId());
         role.set("role_id", Role.getId(Role.USER));
 
+        // sendOtpMessage(phone_number, otp);
+
         return role.insert() ? MapResponse.success() : MapResponse.failure();
+    }
+
+    public MapResponse verifyPhone(String phone_number, String otp) {
+        User user = User.findFirst("phone_number = ?", phone_number);
+        if (user == null) {
+            return MapResponse.failure("User not found");
+        }
+
+        Long expiry = user.getLong("otp_expiry");
+        if (expiry == null || System.currentTimeMillis() > expiry) {
+            return MapResponse.failure("OTP expired");
+        }
+
+        if (!String.valueOf(otp).equals(user.getString("otp_code"))) {
+            return MapResponse.failure("Invalid OTP");
+        }
+
+        user.set("phone_verified", true);
+        user.set("otp_code", null);
+        user.set("otp_expiry", null);
+        user.saveIt();
+
+        return MapResponse.success("Phone verified successfully");
     }
 
     public MapResponse editUsers(Long id, boolean is_active) {
