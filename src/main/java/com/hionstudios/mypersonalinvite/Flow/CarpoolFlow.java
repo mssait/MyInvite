@@ -222,4 +222,15 @@ public class CarpoolFlow {
         }
         return new MapResponse().put("guests", guests);
     }
+
+    public MapResponse viewMyCarpools(){
+
+        Long user_id = UserUtil.getUserid();
+
+        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Address As Event_Address From Carpools Join Events On Events.Id = Carpools.Event_Id Join Users On Users.Id = Carpools.User_Id Where Carpools.User_Id = ?";
+
+        List<MapResponse> carpool = Handler.findAll(sql, user_id);
+        MapResponse response = new MapResponse().put("carpool", carpool);
+        return response;
+    }
 }
