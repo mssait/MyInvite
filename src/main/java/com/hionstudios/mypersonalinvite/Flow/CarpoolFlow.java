@@ -71,7 +71,7 @@ public class CarpoolFlow {
     }
 
     public MapResponse viewCarpoolRequest(Long id) {
-        String sql = "Select * From Carpool_Requests Where id = ?";
+        String sql = "Select Carpool_Requests.*, Users.Name, Users.Profile_Pic From Carpool_Requests Join Users On Carpool_Requests.Guest_Id = Users.Id Where Carpool_Requests.Id = ?";
         MapResponse requests = Handler.findFirst(sql, id);
         if (requests == null) {
             return MapResponse.failure("Carpool request not found");

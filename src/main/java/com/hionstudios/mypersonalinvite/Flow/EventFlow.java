@@ -533,6 +533,10 @@ public class EventFlow {
                         if (phone != null)
                             invite.set("phone_number", phone);
                         invite.insert();
+                        String eventLink = "https://mypersonalinvite.com/events/" + id;
+                        String msg = "Hi " + name + "! 🎉 You’ve been invited to our event.\nView details: "
+                                + eventLink;
+                        WhatsAppUtil.sendWhatsAppMessage(phone, msg);
                         added++;
                         continue;
                     }
