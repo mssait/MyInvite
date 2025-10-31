@@ -225,9 +225,10 @@ public class CarpoolFlow {
 
     public MapResponse viewMyCarpools(){
 
-        Long user_id = UserUtil.getUserid();
+        // Long user_id = UserUtil.getUserid();
+        long user_id = 2;
 
-        String sql = "Select Carpools.*, Users.Name, Users.Profile_Pic, Events.Address As Event_Address From Carpools Join Events On Events.Id = Carpools.Event_Id Join Users On Users.Id = Carpools.User_Id Where Carpools.User_Id = ?";
+        String sql = "Select Carpools.*, Events.Title, Events.Address As Event_Address, (Select Event_Thumbnails.Image From Event_Thumbnails Where Event_Thumbnails.Event_Id = Events.Id Order By Events.Id Desc Limit 1) As Event_Thummnail From Carpools Join Events On Events.Id = Carpools.Event_Id Where Carpools.User_Id = ?";
 
         List<MapResponse> carpool = Handler.findAll(sql, user_id);
         MapResponse response = new MapResponse().put("carpool", carpool);
