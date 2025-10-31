@@ -80,7 +80,7 @@ public class CarpoolFlow {
     }
 
     public MapResponse viewCarpoolRequestDetails(Long id) {
-        String sql = "Select * From Carpool_Requests Where carpool_id = ?";
+        String sql = "Select Carpool_Requests.*, Users.Name, Users.Profile_Pic From Carpool_Requests Join Users On Carpool_Requests.Guest_Id = Users.Id Where carpool_id = ?";
         List<MapResponse> requests = Handler.findAll(sql, id);
         return new MapResponse().put("requests", requests);
     }
