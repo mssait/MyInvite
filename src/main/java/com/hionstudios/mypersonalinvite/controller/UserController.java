@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.DbTransaction;
 import com.hionstudios.iam.IsAdmin;
+import com.hionstudios.iam.IsUser;
 import com.hionstudios.mypersonalinvite.Flow.UserFlow;
 
 @RestController
@@ -32,6 +33,12 @@ public class UserController {
             String password,
             String email) {
         return ((DbTransaction) () -> new UserFlow().editProfile(name, phone_number, password, email)).write();
+    }
+
+    @GetMapping("view-profile")
+    @IsUser
+    public ResponseEntity<MapResponse> viewProfile() {
+        return ((DbTransaction) () -> new UserFlow().viewProfile()).read();
     }
 
     @GetMapping("{id}/view-details")

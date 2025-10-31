@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hionstudios.MapResponse;
+import com.hionstudios.WhatsAppUtil;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
 import com.hionstudios.mypersonalinvite.model.Event;
@@ -443,7 +444,7 @@ public class EventFlow {
                 }
             }
         }
-    
+
         return MapResponse.success()
                 .put("BudgetList", budgets)
                 .put("total_actual_budget", totalActualBudget);
@@ -554,6 +555,10 @@ public class EventFlow {
                     if (phone != null)
                         newInvite.set("phone_number", phone);
                     newInvite.insert();
+                    String eventLink = "https://mypersonalinvite.com/events/" + id;
+                    String msg = "Hi " + name + "! 🎉 You’ve been invited to our event.\nView details: "
+                            + eventLink;
+                    WhatsAppUtil.sendWhatsAppMessage(phone, msg);
                     added++;
                 } else {
                     // Unregistered user: Create invite with GUEST_ID = null
@@ -570,6 +575,10 @@ public class EventFlow {
                         if (phone != null)
                             newInvite.set("phone_number", phone);
                         newInvite.insert();
+                        String eventLink = "https://mypersonalinvite.com/events/" + id;
+                        String msg = "Hi " + name + "! 🎉 You’ve been invited to our event.\nView details: "
+                                + eventLink;
+                        WhatsAppUtil.sendWhatsAppMessage(phone, msg);
                         added++;
                     }
                 }
@@ -733,7 +742,7 @@ public class EventFlow {
 
     // }
 
-    public MapResponse addBudget(Long id, Long budget_type_id, Long planned_amount, Long actual_amount ) {
+    public MapResponse addBudget(Long id, Long budget_type_id, Long planned_amount, Long actual_amount) {
         EventBudget budget = new EventBudget();
         budget.set("event_id", id);
         budget.set("budget_type_id", budget_type_id);
@@ -743,7 +752,7 @@ public class EventFlow {
         return MapResponse.success("Budget item added");
     }
 
-    public MapResponse updateBudget(Long id, Long planned_amount, Long budget_type_id, Long actual_amount ) {
+    public MapResponse updateBudget(Long id, Long planned_amount, Long budget_type_id, Long actual_amount) {
         EventBudget budget = EventBudget.findById(id);
         if (budget == null)
             return MapResponse.failure("Budget item not found");
@@ -774,21 +783,21 @@ public class EventFlow {
         return response;
     }
 
-    public MapResponse getEventTypes(){
+    public MapResponse getEventTypes() {
         String sql = "Select * From Event_Types Order By Type Asc";
         List<MapResponse> eventTypes = Handler.findAll(sql);
         MapResponse response = new MapResponse().put("EventTypes", eventTypes);
         return response;
     }
 
-    public MapResponse getRsvpStatuses(){
+    public MapResponse getRsvpStatuses() {
         String sql = "Select * From Rsvp_Statuses Order By Status Asc";
         List<MapResponse> RsvpTypes = Handler.findAll(sql);
         MapResponse response = new MapResponse().put("RsvpTypes", RsvpTypes);
         return response;
     }
 
-    public MapResponse getBudgetTypes(){
+    public MapResponse getBudgetTypes() {
         String sql = "Select * From Budget_Types Order By Id Asc";
         List<MapResponse> budgetTypes = Handler.findAll(sql);
         MapResponse response = new MapResponse().put("BudgetTypes", budgetTypes);

@@ -40,6 +40,17 @@ public class UserFlow {
         return user.save() ? MapResponse.success() : MapResponse.failure();
     }
 
+    public MapResponse viewProfile() {
+        long userId = 2;
+        // long userId = UserUtil.getUserid();
+
+        String sql = "Select Id, Name, Email, Phone_Number, Profile_pic as Avatar From Users Where id = ?";
+
+        MapResponse profile = Handler.findFirst(sql, userId);
+        MapResponse response = new MapResponse().put("profile", profile);
+        return response;
+    }
+
     public MapResponse addUser(String name, String phone_number, String password) {
 
         User user = new User();
