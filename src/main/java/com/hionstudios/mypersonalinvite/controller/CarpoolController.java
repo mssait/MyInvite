@@ -52,7 +52,7 @@ public class CarpoolController {
     }
 
     @GetMapping("request/{id}/details")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> getCarpoolRequestDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolRequest(id)).read();
     }
