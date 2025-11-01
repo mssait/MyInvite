@@ -1,6 +1,9 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
 import java.util.List;
+import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
@@ -9,6 +12,8 @@ import com.hionstudios.mypersonalinvite.model.Role;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.mypersonalinvite.model.UserRole;
 import com.hionstudios.mypersonalinvite.model.UserType;
+import com.hionstudios.oauth.WorkDrive;
+import com.hionstudios.oauth.WorkDrive.Folder;
 import com.hionstudios.time.TimeUtil;
 
 public class UserFlow {
@@ -24,7 +29,7 @@ public class UserFlow {
         return response;
     }
 
-    public MapResponse editProfile(String name, String phone_number, String password, String email) {
+    public MapResponse editProfile(String name, String phone_number, String password, String email, Object profile_pic ) {
 
         long userId = UserUtil.getUserid();
 
@@ -32,17 +37,27 @@ public class UserFlow {
         if (user == null) {
             return MapResponse.failure("User not found");
         }
+
+        String avatar = null;
+
+        if (profile_pic instanceof MultipartFile) {
+            MapResponse response = WorkDrive.upload((MultipartFile) profile_pic, Folder.MYPERSONALINVITE, false);
+            avatar = response != null ? response.getString("resource_id") : null;
+        } else {
+            avatar = (String) profile_pic;
+        }
+
         user.set("name", name);
         user.set("email", email);
         user.set("phone_number", phone_number);
         user.set("password", password);
+        user.set("profile_pic", avatar);
 
         return user.save() ? MapResponse.success() : MapResponse.failure();
     }
 
     public MapResponse viewProfile() {
-        long userId = 2;
-        // long userId = UserUtil.getUserid();
+        long userId = UserUtil.getUserid();
 
         String sql = "Select Id, Name, Email, Phone_Number, Profile_pic as Avatar From Users Where id = ?";
 

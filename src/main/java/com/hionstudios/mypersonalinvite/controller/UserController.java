@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.hionstudios.MapResponse;
+import com.hionstudios.MixMultipartFileAndString;
 import com.hionstudios.db.DbTransaction;
 import com.hionstudios.iam.IsAdmin;
 import com.hionstudios.iam.IsUser;
@@ -31,8 +32,9 @@ public class UserController {
             String name,
             String phone_number,
             String password,
-            String email) {
-        return ((DbTransaction) () -> new UserFlow().editProfile(name, phone_number, password, email)).write();
+            String email,
+            @MixMultipartFileAndString Object profile_pic) {
+        return ((DbTransaction) () -> new UserFlow().editProfile(name, phone_number, password, email, profile_pic)).write();
     }
 
     @GetMapping("view-profile")
