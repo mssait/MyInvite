@@ -53,13 +53,25 @@ public class UserFlow {
 
     public MapResponse addUser(String name, String phone_number, String password) {
 
+        int otp = (int) (Math.random() * 900000) + 100000;
+        long expiry = System.currentTimeMillis() + (30 * 60 * 1000); // 30 mins
+
         User existing = User.findFirst("phone_number = ? And phone_verified = ?", phone_number, true);
         if (existing != null) {
             return MapResponse.failure("Phone number already registered");
         }
 
-        int otp = (int) (Math.random() * 900000) + 100000;
-        long expiry = System.currentTimeMillis() + (30 * 60 * 1000); // 30 mins
+        User verified = User.findFirst("phone_number = ? And phone_verified = ?", phone_number, false);
+        if (verified != null) {
+
+            User user = User.findFirst("phone_number = ?", phone_number);
+            user.set("name", name);
+            user.set("password", password);
+            user.set("otp_code", otp);
+            user.set("otp_expiry", expiry);
+            user.saveIt();
+            return MapResponse.success();
+        }
 
         User user = new User();
         user.set("name", name);

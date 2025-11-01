@@ -217,8 +217,8 @@ public class EventController {
     @IsUser
     public ResponseEntity<MapResponse> updateBudget(
             @PathVariable Long id,
-            @RequestParam(required = false) Long planned_amount,
             @RequestParam(required = false) Long budget_type_id,
+            @RequestParam(required = false) Long planned_amount,
             @RequestParam(required = false) Long actual_amount) {
         return ((DbTransaction) () -> new EventFlow().updateBudget(id, budget_type_id, planned_amount, actual_amount))
                 .write();
