@@ -1,15 +1,15 @@
-// Usereventdetails.jsx
+
 import React, { useEffect, useState } from "react";
-import { Box, Container, Typography, Chip, Stack, Button, Paper, IconButton, Divider, Skeleton, Card, CardContent, Grid } from "@mui/material";
+import { Box, Container, Typography, Chip, Stack, Button, Paper, IconButton, Divider, Skeleton, Card, CardContent, Grid, AppBar, Toolbar } from "@mui/material";
 import {
-    IconCalendar, IconLocation, IconCar, IconEdit, IconCheck, IconX, IconQuestionMark,
+    IconCalendar, IconLocation, IconEdit, IconCheck, IconX, IconQuestionMark,
     IconUsers,
+    IconUser,
 } from "@tabler/icons-react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import { useParams, useNavigate } from "react-router-dom";
-import BreadcrumbLink from "../components/BreadcrumbLink"; // Adjust path
 import fetcher from "../utils/fetcher";
 import { toImage, toDate, toTimeMillis, toTime } from "../utils/util";
 
@@ -19,6 +19,49 @@ const keepLastAddressParts = (address, count = 3) => {
     const parts = address.split(",").map((p) => p.trim()).filter(Boolean);
     return parts.length <= count ? address : parts.slice(-count).join(", ");
 };
+
+const Navbar = () => (
+    <AppBar
+        position="fixed"
+        sx={{
+            backgroundColor: "#373643",
+            boxShadow: "none",
+            backdropFilter: "blur(6px)",
+        }}
+    >
+        <Toolbar
+            sx={{
+                display: "flex",
+                justifyContent: "space-between", // logo left, icon right
+                alignItems: "center",
+                py: 1,
+                px: { xs: 2, md: 4 },
+            }}
+        >
+            {/* Logo on the left */}
+            <Box
+                component="img"
+                src="/logo.png"
+                alt="Logo"
+                sx={{
+                    height: { xs: 40, md: 60 },
+                    width: "auto",
+                    objectFit: "contain",
+                    cursor: "pointer",
+                    filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))",
+                }}
+            />
+            <IconButton
+                color="inherit"
+                sx={{
+                    color: "white"
+                }}
+            >
+                <IconUser size={30} />
+            </IconButton>
+        </Toolbar>
+    </AppBar>
+);
 
 // ---------- Hero Carousel ----------
 // ---------- Hero Carousel (NO ARROWS) ----------
@@ -71,7 +114,7 @@ const HeroCarousel = ({ images }) => {
         <Box
             sx={{
                 width: "100%",
-                backgroundColor: "black", // full black background
+                backgroundColor: "black",
                 overflow: "hidden",
                 position: "relative",
             }}
@@ -79,7 +122,6 @@ const HeroCarousel = ({ images }) => {
             <Slider {...settings}>
                 {images.map((src, i) => (
                     <Box key={i} sx={{ position: "relative" }}>
-                        {/* Thumbnail Image */}
                         <Box
                             component="img"
                             src={src}
@@ -91,28 +133,10 @@ const HeroCarousel = ({ images }) => {
                                 display: "block",
                             }}
                         />
-
-                        {/* Logo Overlay (top-left corner of the thumbnail) */}
-                        <Box
-                            component="img"
-                            src="/logo.png" // replace with your logo path
-                            alt="Logo"
-                            sx={{
-                                position: "absolute",
-                                top: { xs: 10, md: 20 },
-                                left: { xs: 10, md: 30 },
-                                width: { xs: 100, md: 300 },
-                                opacity: 0.9, // transparent look
-                                zIndex: 1,
-                                pointerEvents: "none",
-                                filter: "drop-shadow(0 0 4px rgba(0,0,0,0.5))", // adds subtle shadow for visibility
-                            }}
-                        />
                     </Box>
                 ))}
             </Slider>
 
-            {/* Gradient overlay for readability */}
             <Box
                 sx={{
                     position: "absolute",
@@ -120,14 +144,6 @@ const HeroCarousel = ({ images }) => {
                     background: "linear-gradient(to top, rgba(0,0,0,0.4), transparent)",
                 }}
             />
-
-            {/* Ensure arrows hidden */}
-            <style>{`
-        .slick-prev,
-        .slick-next {
-          display: none !important;
-        }
-      `}</style>
         </Box>
     );
 };
@@ -346,263 +362,266 @@ export default function Event() {
     return (
         <Box>
             {/* Hero Carousel */}
-            <HeroCarousel images={images} />
-            <Container
-                maxWidth="md"
-                sx={{
-                    py: { xs: 4, md: 6 },
-                    px: { xs: 2, md: 4 },
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: { xs: 3, md: 5 },
-                }}
-            >
-                <Stack spacing={{ xs: 3, md: 5 }}>
-                    {/* Title */}
-                    <Typography
-                        variant="h2"
-                        fontWeight={700}
-                        sx={{
-                            fontSize: { xs: "1.6rem", md: "2.5rem" },
-                            textAlign: { xs: "left", md: "center" },
-                        }}
-                    >
-                        {event.title || "Untitled Event"}
-                    </Typography>
-
-                    {/* Guests */}
-                    <Stack
-                        direction={{ xs: "row", md: "row" }}
-                        spacing={1.5}
-                        alignItems="center"
-                        justifyContent={{ xs: "flex-start", md: "center" }}
-                    >
-                        <Box
-                            sx={{
-                                bgcolor: "secondary.main",
-                                borderRadius: 1,
-                                p: 1,
-                                display: "flex",
-                            }}
-                        >
-                            <IconUsers color="white" size={22} />
-                        </Box>
-                        {event.no_of_guest > 0 && (
-                            <Typography
-                                variant="body1"
-                                fontWeight={500}
-                                sx={{ fontSize: { xs: "1rem", md: "1.1rem" } }}
-                            >
-                                <strong>Total Guests: {event.no_of_guest}</strong>
-                            </Typography>
-                        )}
-                    </Stack>
-
-                    {/* Attendance Buttons */}
-                    <Box
-                    >
-                        <AttendanceButtons
-                            status={rsvpStatus}
-                            onStatusChange={handleRsvpChange}
-                            loading={rsvpLoading}
-                        />
-                    </Box>
-
-                    <Divider sx={{ my: { xs: 2, md: 4 } }} />
-
-                    {/* Play Store Bar */}
-                    <Box sx={{ mx: { xs: 0, md: "auto" }, width: { xs: "100%", md: "100%" } }}>
-                        <PlayStoreBar />
-                    </Box>
-
-                    <Divider sx={{ my: { xs: 2, md: 4 } }} />
-
-                    {/* Date & Location Grid */}
-                    <Box
-                        sx={{
-                            display: "grid",
-                            gridTemplateColumns: {
-                                xs: "1fr",
-                                md: "1fr 1fr",
-                            },
-                            gap: { xs: 2, md: 4 },
-                            alignItems: "start",
-                        }}
-                    >
-                        {/* Date & Time */}
-                        <Stack direction="row" spacing={2} alignItems="center">
-                            <Box
-                                sx={{
-                                    bgcolor: "secondary.main",
-                                    borderRadius: 1,
-                                    p: 1,
-                                    display: "flex",
-                                }}
-                            >
-                                <IconCalendar color="white" size={22} />
-                            </Box>
-                            <Box>
-                                <Typography variant="body1" fontWeight={600}>
-                                    {event.date ? toDate(event.date) : "—"}
-                                </Typography>
-                                <Typography variant="body2" color="text.secondary">
-                                    {event.start_time && event.end_time
-                                        ? `${toTime(event.start_time)} - ${toTime(event.end_time)}`
-                                        : "—"}
-                                </Typography>
-                            </Box>
-                        </Stack>
-
-                        {/* Location */}
-                        <Stack
-                            direction="row"
-                            spacing={2}
-                            alignItems="center"
-                            component="a"
-                            href={`https://www.google.com/maps?q=${event.location_latitude},${event.location_longitude}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            sx={{
-                                textDecoration: "none",
-                                color: "inherit",
-                                cursor: "pointer",
-                                "&:hover": { color: "primary.main" },
-                            }}
-                        >
-                            <Box
-                                sx={{
-                                    bgcolor: "secondary.main",
-                                    borderRadius: 1,
-                                    p: 1,
-                                    display: "flex",
-                                }}
-                            >
-                                <IconLocation color="white" size={22} />
-                            </Box>
-                            <Typography
-                                variant="body1"
-                                fontWeight={600}
-                                sx={{
-                                    lineHeight: 1.4,
-                                    maxWidth: { xs: "100%", md: "90%" },
-                                    wordBreak: "break-word",
-                                }}
-                            >
-                                {event?.address}
-                            </Typography>
-                        </Stack>
-                    </Box>
-
-                    <Divider sx={{ my: { xs: 2, md: 4 } }} />
-
-                    {/* About Event */}
-                    <Box>
+            <Navbar />
+            <Box sx={{ mt: { xs: 7, md: 9 } }}>
+                <HeroCarousel images={images} />
+                <Container
+                    maxWidth="md"
+                    sx={{
+                        py: { xs: 4, md: 6 },
+                        px: { xs: 2, md: 4 },
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: { xs: 3, md: 5 },
+                    }}
+                >
+                    <Stack spacing={{ xs: 3, md: 5 }}>
+                        {/* Title */}
                         <Typography
-                            variant="h3"
-                            fontWeight={600}
-                            gutterBottom
-                            sx={{ fontSize: { xs: "1.5rem", md: "2rem" }, textAlign: { md: "center" } }}
-                        >
-                            About Event
-                        </Typography>
-                        <Typography
-                            variant="body1"
-                            color="text.secondary"
+                            variant="h2"
+                            fontWeight={700}
                             sx={{
-                                lineHeight: 1.7,
+                                fontSize: { xs: "1.6rem", md: "2.5rem" },
                                 textAlign: { xs: "left", md: "center" },
-                                fontSize: { xs: "0.95rem", md: "1.05rem" },
                             }}
                         >
-                            {event.description?.trim() ||
-                                "It is a long established fact that a reader will be distracted by readable content."}
+                            {event.title || "Untitled Event"}
                         </Typography>
-                    </Box>
 
-                    {/* Carpooling Banner */}
-                    <Paper
-                        elevation={4}
-                        sx={{
-                            borderRadius: 3,
-                            overflow: "hidden",
-                            position: "relative",
-                            height: { xs: 140, sm: 200, md: 320, lg: 380 },
-                            mt: 3,
-                            backgroundImage: "url(/carpool_banner.png)",
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            display: "flex",
-                            alignItems: "center",
-                        }}
-                    >
-                        {/* Gradient overlay for text readability */}
+                        {/* Guests */}
+                        <Stack
+                            direction={{ xs: "row", md: "row" }}
+                            spacing={1.5}
+                            alignItems="center"
+                            justifyContent={{ xs: "flex-start", md: "center" }}
+                        >
+                            <Box
+                                sx={{
+                                    bgcolor: "secondary.main",
+                                    borderRadius: 1,
+                                    p: 1,
+                                    display: "flex",
+                                }}
+                            >
+                                <IconUsers color="white" size={22} />
+                            </Box>
+                            {event.no_of_guest > 0 && (
+                                <Typography
+                                    variant="body1"
+                                    fontWeight={500}
+                                    sx={{ fontSize: { xs: "1rem", md: "1.1rem" } }}
+                                >
+                                    <strong>Total Guests: {event.no_of_guest}</strong>
+                                </Typography>
+                            )}
+                        </Stack>
+
+                        {/* Attendance Buttons */}
+                        <Box
+                        >
+                            <AttendanceButtons
+                                status={rsvpStatus}
+                                onStatusChange={handleRsvpChange}
+                                loading={rsvpLoading}
+                            />
+                        </Box>
+
+                        <Divider sx={{ my: { xs: 2, md: 4 } }} />
+
+                        {/* Play Store Bar */}
+                        <Box sx={{ mx: { xs: 0, md: "auto" }, width: { xs: "100%", md: "100%" } }}>
+                            <PlayStoreBar />
+                        </Box>
+
+                        <Divider sx={{ my: { xs: 2, md: 4 } }} />
+
+                        {/* Date & Location Grid */}
                         <Box
                             sx={{
-                                position: "absolute",
-                                inset: 0,
-                                background: {
-                                    xs: "linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.15), transparent)",
-                                    md: "linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25), transparent)",
+                                display: "grid",
+                                gridTemplateColumns: {
+                                    xs: "1fr",
+                                    md: "1fr 1fr",
                                 },
-                            }}
-                        />
-
-                        {/* Content Box */}
-                        <Box
-                            sx={{
-                                position: "relative",
-                                p: { xs: 2, sm: 3, md: 6, lg: 8 },
-                                color: "white",
-                                maxWidth: { xs: "100%", md: "50%" }, // prevent text from stretching too far
+                                gap: { xs: 2, md: 4 },
+                                alignItems: "start",
                             }}
                         >
-                            <Typography
+                            {/* Date & Time */}
+                            <Stack direction="row" spacing={2} alignItems="center">
+                                <Box
+                                    sx={{
+                                        bgcolor: "secondary.main",
+                                        borderRadius: 1,
+                                        p: 1,
+                                        display: "flex",
+                                    }}
+                                >
+                                    <IconCalendar color="white" size={22} />
+                                </Box>
+                                <Box>
+                                    <Typography variant="body1" fontWeight={600}>
+                                        {event.date ? toDate(event.date) : "—"}
+                                    </Typography>
+                                    <Typography variant="body2" color="text.secondary">
+                                        {event.start_time && event.end_time
+                                            ? `${toTime(event.start_time)} - ${toTime(event.end_time)}`
+                                            : "—"}
+                                    </Typography>
+                                </Box>
+                            </Stack>
+
+                            {/* Location */}
+                            <Stack
+                                direction="row"
+                                spacing={2}
+                                alignItems="center"
+                                component="a"
+                                href={`https://www.google.com/maps?q=${event.location_latitude},${event.location_longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 sx={{
-                                    fontWeight: 700,
-                                    fontSize: { xs: 14, sm: 18, md: 36, lg: 44 },
-                                    lineHeight: 1.2,
+                                    textDecoration: "none",
+                                    color: "inherit",
+                                    cursor: "pointer",
+                                    "&:hover": { color: "primary.main" },
                                 }}
                             >
-                                GOT EMPTY SEATS!
-                            </Typography>
+                                <Box
+                                    sx={{
+                                        bgcolor: "secondary.main",
+                                        borderRadius: 1,
+                                        p: 1,
+                                        display: "flex",
+                                    }}
+                                >
+                                    <IconLocation color="white" size={22} />
+                                </Box>
+                                <Typography
+                                    variant="body1"
+                                    fontWeight={600}
+                                    sx={{
+                                        lineHeight: 1.4,
+                                        maxWidth: { xs: "100%", md: "90%" },
+                                        wordBreak: "break-word",
+                                    }}
+                                >
+                                    {event?.address}
+                                </Typography>
+                            </Stack>
+                        </Box>
 
+                        <Divider sx={{ my: { xs: 2, md: 4 } }} />
+
+                        {/* About Event */}
+                        <Box>
                             <Typography
+                                variant="h3"
+                                fontWeight={600}
+                                gutterBottom
+                                sx={{ fontSize: { xs: "1.5rem", md: "2rem" }, textAlign: { md: "center" } }}
+                            >
+                                About Event
+                            </Typography>
+                            <Typography
+                                variant="body1"
+                                color="text.secondary"
                                 sx={{
-                                    mt: { xs: 0.5, md: 1.5 },
-                                    opacity: 0.95,
-                                    fontSize: { xs: 11, sm: 14, md: 22, lg: 26 },
-                                    lineHeight: 1.3,
+                                    lineHeight: 1.7,
+                                    textAlign: { xs: "left", md: "center" },
+                                    fontSize: { xs: "0.95rem", md: "1.05rem" },
                                 }}
                             >
-                                Share your ride, cut costs & CO₂!
+                                {event.description?.trim() ||
+                                    "It is a long established fact that a reader will be distracted by readable content."}
                             </Typography>
+                        </Box>
 
-                            <Button
-                                variant="contained"
+                        {/* Carpooling Banner */}
+                        <Paper
+                            elevation={4}
+                            sx={{
+                                borderRadius: 3,
+                                overflow: "hidden",
+                                position: "relative",
+                                height: { xs: 140, sm: 200, md: 320, lg: 380 },
+                                mt: 3,
+                                backgroundImage: "url(/carpool_banner.png)",
+                                backgroundSize: "cover",
+                                backgroundPosition: "center",
+                                display: "flex",
+                                alignItems: "center",
+                            }}
+                        >
+                            {/* Gradient overlay for text readability */}
+                            <Box
                                 sx={{
-                                    mt: { xs: 1.5, sm: 2, md: 3 },
-                                    bgcolor: "white",
-                                    color: "black",
-                                    textTransform: "none",
-                                    fontWeight: 600,
-                                    fontSize: { xs: 10, sm: 12, md: 16 },
-                                    px: { xs: 2, md: 4 },
-                                    height: { xs: 28, sm: 34, md: 44 },
-                                    "&:hover": {
-                                        bgcolor: "#f5f5f5",
+                                    position: "absolute",
+                                    inset: 0,
+                                    background: {
+                                        xs: "linear-gradient(90deg, rgba(0,0,0,0.45), rgba(0,0,0,0.15), transparent)",
+                                        md: "linear-gradient(90deg, rgba(0,0,0,0.5), rgba(0,0,0,0.25), transparent)",
                                     },
                                 }}
-                                href="https://play.google.com/store/apps/details?id=your.app.id"
-                                target="_blank"
-                                rel="noopener"
-                            >
-                                Offer Carpool
-                            </Button>
-                        </Box>
-                    </Paper>
+                            />
 
-                </Stack>
-            </Container>
+                            {/* Content Box */}
+                            <Box
+                                sx={{
+                                    position: "relative",
+                                    p: { xs: 2, sm: 3, md: 6, lg: 8 },
+                                    color: "white",
+                                    maxWidth: { xs: "100%", md: "50%" }, // prevent text from stretching too far
+                                }}
+                            >
+                                <Typography
+                                    sx={{
+                                        fontWeight: 700,
+                                        fontSize: { xs: 14, sm: 18, md: 36, lg: 44 },
+                                        lineHeight: 1.2,
+                                    }}
+                                >
+                                    GOT EMPTY SEATS!
+                                </Typography>
+
+                                <Typography
+                                    sx={{
+                                        mt: { xs: 0.5, md: 1.5 },
+                                        opacity: 0.95,
+                                        fontSize: { xs: 11, sm: 14, md: 22, lg: 26 },
+                                        lineHeight: 1.3,
+                                    }}
+                                >
+                                    Share your ride, cut costs & CO₂!
+                                </Typography>
+
+                                <Button
+                                    variant="contained"
+                                    sx={{
+                                        mt: { xs: 1.5, sm: 2, md: 3 },
+                                        bgcolor: "white",
+                                        color: "black",
+                                        textTransform: "none",
+                                        fontWeight: 600,
+                                        fontSize: { xs: 10, sm: 12, md: 16 },
+                                        px: { xs: 2, md: 4 },
+                                        height: { xs: 28, sm: 34, md: 44 },
+                                        "&:hover": {
+                                            bgcolor: "#f5f5f5",
+                                        },
+                                    }}
+                                    href="https://play.google.com/store/apps/details?id=your.app.id"
+                                    target="_blank"
+                                    rel="noopener"
+                                >
+                                    Offer Carpool
+                                </Button>
+                            </Box>
+                        </Paper>
+
+                    </Stack>
+                </Container>
+            </Box>
 
         </Box>
     );
