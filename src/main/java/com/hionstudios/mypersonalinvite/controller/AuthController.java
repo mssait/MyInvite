@@ -37,8 +37,8 @@ public class AuthController {
 
     @PostMapping("reset-password")
     @PermitAll
-    public ResponseEntity<MapResponse> resetPassword(@RequestParam String token, @RequestParam String password) {
-        return ((DbTransaction) () -> UserUtil.resetPassword(token, password)).read();
+    public ResponseEntity<MapResponse> resetPassword(@RequestParam String otp, @RequestParam String password) {
+        return ((DbTransaction) () -> UserUtil.resetPassword(otp, password)).read();
     }
 
     @PostMapping("change-password")

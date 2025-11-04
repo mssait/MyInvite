@@ -11,9 +11,6 @@ import com.hionstudios.mypersonalinvite.model.FcmDeviceToken;
 
 public class NotificationFlow {
 
-    @Autowired
-    private FirebaseNotificationService notificationService;
-
     public MapResponse addFcmToken(String fcm_token) {
         long userId = UserUtil.getUserid();
 
@@ -48,15 +45,15 @@ public class NotificationFlow {
         return fcmToken;
     }
 
-    public MapResponse sendNotification(long userId, String title, String body) {
+    // public MapResponse sendNotification(long userId, String title, String body) {
 
-        FcmDeviceToken token = FcmDeviceToken.findFirst("user_id = ?", userId);
-        MapResponse response = new MapResponse().put("fcm", token);
+    //     FcmDeviceToken token = FcmDeviceToken.findFirst("user_id = ?", userId);
+    //     MapResponse response = new MapResponse().put("fcm", token);
 
-        if (response == null) {
-            return MapResponse.failure("No FCM token found for user.");
-        }
-        notificationService.sendNotification(response.getString("fcm_token"), title, body);
-        return MapResponse.success("Notification sent.");
-    }
+    //     if (response == null) {
+    //         return MapResponse.failure("No FCM token found for user.");
+    //     }
+    //     notificationService.sendNotification(response.getString("fcm_token"), title, body);
+    //     return MapResponse.success("Notification sent.");
+    // }
 }
