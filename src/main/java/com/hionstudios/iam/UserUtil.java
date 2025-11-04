@@ -60,7 +60,7 @@ public class UserUtil {
         String sql = "Select * From Users Where Id = ?";
 
         MapResponse user = Handler.findFirst(sql, userId);
-        Long expiry = user != null ? user.getLong("password_reset_token_expiry") : null;
+        Long expiry = user != null ? user.getLong("password_reset_otp_expiry") : null;
         if (user == null || expiry == null || expiry < System.currentTimeMillis()) {
             return MapResponse.failure("OTP has expired or invalid");
         }
