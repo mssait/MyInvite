@@ -39,30 +39,36 @@ public class UserUtil {
         MapResponse user = Handler.findFirst(sql, phone_number);
 
         if (user == null) {
-            return MapResponse.success("Phone numbr not found!");
+            return MapResponse.success("Phone number not found!");
         }
 
-        String token = UUID.randomUUID().toString();
-        long expiry = System.currentTimeMillis() + 1000 * 60 * 30; // 30 mins
+        int otp = (int) (Math.random() * 900000) + 100000;
+        long expiry = System.currentTimeMillis() + (30 * 60 * 1000); // 30 mins
 
         User users = User.findById(user.getLong("id"));
-        users.set("password_reset_token", token);
-        users.set("password_reset_token_expiry", expiry);
+        users.set("password_reset_otp", otp);
+        users.set("password_reset_otp_expiry", expiry);
         users.save();
 
         // String resetLink = "https://localhost:3000/reset-password?token=" + token;
         // MailUtil.sendResetPasswordLinkEmail(phone_number, resetLink);
-        return MapResponse.success("Reset link sent successfully.");
+        return MapResponse.success("Phone Number Validation successfull.");
     }
 
-    public static MapResponse resetPassword(String token, String password) {
-        String sql = "Select * From Users Where Password_Reset_Token = ?";
+    public static MapResponse resetPassword(String otp, String password) {
+        Long userId = getUserid();
+        String sql = "Select * From Users Where Id = ?";
 
-        MapResponse user = Handler.findFirst(sql, token);
+        MapResponse user = Handler.findFirst(sql, userId);
         Long expiry = user != null ? user.getLong("password_reset_token_expiry") : null;
         if (user == null || expiry == null || expiry < System.currentTimeMillis()) {
-            return MapResponse.failure("Password reset link expired or invalid");
+            return MapResponse.failure("OTP has expired or invalid");
         }
+
+        if (user == null || !user.getString("password_reset_otp").equals(otp)) {
+            return MapResponse.failure("Invalid OTP");
+        }
+
         User users = User.findById(user.getLong("id"));
         users.set("password", password);
         users.set("password_reset_token", null);
@@ -72,19 +78,6 @@ public class UserUtil {
 
     }
     
-    // public static MapResponse changePassword(String reset_otp, String password){
-    //     String sql = "Select * From Users Where Reset_Otp = ?";
-
-    //     MapResponse user = Handler.findFirst(sql, reset_otp);
-    //     if (user == null) {
-    //         return MapResponse.failure("Reset OTP is invalid");
-    //     }
-    //     User users = User.findById(user.getLong("id"));
-    //     users.set("password", password);
-    //     users.set("reset_otp", null);
-
-    //     return users.save() ? MapResponse.success() : MapResponse.failure();
-    // }
 
     public static MapResponse changePassword(String old_password, String new_password){
         
