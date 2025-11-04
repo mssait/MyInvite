@@ -31,13 +31,19 @@ public class AuthController {
 
     @PostMapping("forgot-password")
     @PermitAll
-    public ResponseEntity<MapResponse> forgotPassword(@RequestParam String username) {
-        return ((DbTransaction) () -> UserUtil.forgotPassword(username)).read();
+    public ResponseEntity<MapResponse> forgotPassword(@RequestParam String phone_number) {
+        return ((DbTransaction) () -> UserUtil.forgotPassword(phone_number)).read();
     }
 
     @PostMapping("reset-password")
     @PermitAll
     public ResponseEntity<MapResponse> resetPassword(@RequestParam String token, @RequestParam String password) {
         return ((DbTransaction) () -> UserUtil.resetPassword(token, password)).read();
+    }
+
+    @PostMapping("change-password")
+    @PermitAll
+    public ResponseEntity<MapResponse> changePassword(@RequestParam String old_password, @RequestParam String new_password) {
+        return ((DbTransaction) () -> UserUtil.changePassword(old_password, new_password)).read();
     }
 }

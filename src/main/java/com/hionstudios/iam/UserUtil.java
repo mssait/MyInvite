@@ -33,30 +33,13 @@ public class UserUtil {
         return getUserDetails().getUsername();
     }
 
-    public static MapResponse forgotPassword(String username) {
-        if (username == null || !username.contains("-")) {
-            MapResponse.failure("Invalid username format.");
-        }
+    public static MapResponse forgotPassword(String phone_number) {
 
-        String[] parts = username.split("-");
-        if (parts.length < 2) {
-            return MapResponse.failure("Invalid username format.");
-        }
-
-        String email = parts[0];
-        int typeId;
-
-        try {
-            typeId = Integer.parseInt(parts[1]);
-        } catch (NumberFormatException e) {
-            return MapResponse.failure("Invalid type ID.");
-        }
-
-        String sql = "Select * From Users Where Email = ? And Type_Id = ?";
-        MapResponse user = Handler.findFirst(sql, email, typeId);
+        String sql = "Select * From Users Where Phone_Number = ? ";
+        MapResponse user = Handler.findFirst(sql, phone_number);
 
         if (user == null) {
-            return MapResponse.success("If the email exists, a reset link has been sent.");
+            return MapResponse.success("Phone numbr not found!");
         }
 
         String token = UUID.randomUUID().toString();
@@ -67,8 +50,8 @@ public class UserUtil {
         users.set("password_reset_token_expiry", expiry);
         users.save();
 
-        String resetLink = "https://localhost:3000/reset-password?token=" + token;
-        MailUtil.sendResetPasswordLinkEmail(email, resetLink);
+        // String resetLink = "https://localhost:3000/reset-password?token=" + token;
+        // MailUtil.sendResetPasswordLinkEmail(phone_number, resetLink);
         return MapResponse.success("Reset link sent successfully.");
     }
 
@@ -87,5 +70,33 @@ public class UserUtil {
 
         return users.save() ? MapResponse.success() : MapResponse.failure();
 
+    }
+    
+    // public static MapResponse changePassword(String reset_otp, String password){
+    //     String sql = "Select * From Users Where Reset_Otp = ?";
+
+    //     MapResponse user = Handler.findFirst(sql, reset_otp);
+    //     if (user == null) {
+    //         return MapResponse.failure("Reset OTP is invalid");
+    //     }
+    //     User users = User.findById(user.getLong("id"));
+    //     users.set("password", password);
+    //     users.set("reset_otp", null);
+
+    //     return users.save() ? MapResponse.success() : MapResponse.failure();
+    // }
+
+    public static MapResponse changePassword(String old_password, String new_password){
+        
+        Long userId = getUserid();
+        String sql = "Select * From Users Where Id = ?";
+
+        MapResponse user = Handler.findFirst(sql, userId);
+        if (user == null || !user.getString("password").equals(old_password)) {
+            return MapResponse.failure("Old password is incorrect");
+        }
+        User users = User.findById(user.getLong("id"));
+        users.set("password", new_password);
+        return users.save() ? MapResponse.success() : MapResponse.failure();
     }
 }

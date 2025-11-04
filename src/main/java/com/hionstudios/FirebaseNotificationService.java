@@ -7,7 +7,7 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 
 @Service
-public class FirebaseNotification {
+public class FirebaseNotificationService {
 
     public void sendNotification(String token, String title, String body) {
         try {
