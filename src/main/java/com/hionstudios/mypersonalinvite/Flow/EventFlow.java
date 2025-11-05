@@ -163,6 +163,15 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
+        Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
+
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime parsedStartTime = LocalTime.parse(start_time, timeFormatter);
+        long startTimeMillis = parsedStartTime.toSecondOfDay() * 1000L;
+
+        LocalTime parsedEndTime = LocalTime.parse(end_time, timeFormatter);
+        long endTimeMillis = parsedEndTime.toSecondOfDay() * 1000L;
+
         Event event = Event.findById(id);
         if (event == null)
             return MapResponse.failure("Event not found");
@@ -174,21 +183,19 @@ public class EventFlow {
         event.set("title", title);
         event.set("description", description);
         event.set("no_of_guest", no_of_guest);
-        event.set("date", date);
-        event.set("start_time", start_time);
-        event.set("end_time", end_time);
+        event.set("date", parsedDate);
+        event.set("start_time", startTimeMillis);
+        event.set("end_time", endTimeMillis);
         event.set("address", address);
         event.set("gift_suggestion", gift_suggestion);
-        event.set("latitude", latitude);
-        event.set("longitude", longitude);
+        event.set("location_latitude", latitude);
+        event.set("location_longitude", longitude);
         boolean isSaved = event.saveIt();
 
         if (isSaved) {
             List<Long> guestIds = Handler
                     .findAll("Select Guest_Id From Event_Invites Where Event_Id = ? And Guest_Id Is Not Null", id)
-                    .stream()
-                    .map(map -> map.getLong("guest_id"))
-                    .collect(Collectors.toList());
+                    .stream().map(map -> map.getLong("guest_id")).collect(Collectors.toList());
             if (guestIds != null && !guestIds.isEmpty()) {
                 for (Long guestId : guestIds) {
                     com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();

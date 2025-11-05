@@ -237,7 +237,7 @@ public class EventController {
     }
 
     @GetMapping("types")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> getEventTypes() {
         return ((DbTransaction) () -> new EventFlow().getEventTypes()).read();
     }
