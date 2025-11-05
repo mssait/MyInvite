@@ -1,8 +1,5 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.hionstudios.FirebaseNotificationService;
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
