@@ -357,7 +357,7 @@ export default function Event() {
         );
     }
 
-    const images = event.thumbnails?.length > 3
+    const images = event.thumbnails?.length > 0
         ? event.thumbnails.map(t => toImage(t.image))
         : ["/Event_thumbnail1.png", "/Event_thumbnail2.png", "/Event_thumbnail3.png"];
 

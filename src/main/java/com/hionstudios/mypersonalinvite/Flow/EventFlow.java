@@ -156,115 +156,124 @@ public class EventFlow {
         return MapResponse.success();
     }
 
-public MapResponse editEvent(
-        Long id, int event_type_id, String title, String description,
-        int no_of_guest, String date, String start_time, String end_time,
-        String address, String gift_suggestion, double latitude,
-        double longitude, List<Object> thumbnail
-) {
-    Long userId = UserUtil.getUserid();
-    if (userId == null || userId <= 0)
-        return MapResponse.failure("User not authenticated");
+    public MapResponse editEvent(
+            Long id, int event_type_id, String title, String description,
+            int no_of_guest, String date, String start_time, String end_time,
+            String address, String gift_suggestion, double latitude,
+            double longitude, List<Object> thumbnail) {
+        // Long userId = UserUtil.getUserid();
+        // if (userId == null || userId <= 0)
+        // return MapResponse.failure("User not authenticated");
 
-    Event event = Event.findById(id);
-    if (event == null)
-        return MapResponse.failure("Event not found");
+        Event event = Event.findById(id);
+        if (event == null)
+            return MapResponse.failure("Event not found");
 
-    if (!event.getLong("owner_id").equals(userId))
-        return MapResponse.failure("Not allowed");
+        // if (!event.getLong("owner_id").equals(userId))
+        // return MapResponse.failure("Not allowed");
 
-    // --- Update event details ---
-    Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
+        // --- Update event details ---
+        Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
 
-    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime parsedStartTime = LocalTime.parse(start_time, timeFormatter);
+        long startTimeMillis = parsedStartTime.toSecondOfDay() * 1000L;
 
-    long startTimeMillis = LocalTime.parse(start_time, timeFormatter).toSecondOfDay() * 1000L;
-    long endTimeMillis   = LocalTime.parse(end_time,   timeFormatter).toSecondOfDay() * 1000L;
+        LocalTime parsedEndTime = LocalTime.parse(end_time, timeFormatter);
+        long endTimeMillis = parsedEndTime.toSecondOfDay() * 1000L;
+        event
+                .set("event_type_id", event_type_id)
+                .set("title", title)
+                .set("description", description)
+                .set("no_of_guest", no_of_guest)
+                .set("date", parsedDate)
+                .set("start_time", startTimeMillis)
+                .set("end_time", endTimeMillis)
+                .set("address", address)
+                .set("gift_suggestion", gift_suggestion)
+                .set("location_latitude", latitude)
+                .set("location_longitude", longitude);
 
-    event
-        .set("event_type_id", event_type_id)
-        .set("title", title)
-        .set("description", description)
-        .set("no_of_guest", no_of_guest)
-        .set("date", parsedDate)
-        .set("start_time", startTimeMillis)
-        .set("end_time", endTimeMillis)
-        .set("address", address)
-        .set("gift_suggestion", gift_suggestion)
-        .set("location_latitude", latitude)
-        .set("location_longitude", longitude);
+        boolean isSaved = event.saveIt();
 
-    boolean isSaved = event.saveIt();
+        // ✅ Notify guests only if saved
+        // if (isSaved) {
+        // List<Long> guestIds = Handler
+        // .findAll("SELECT guest_id FROM event_invites WHERE event_id = ? AND guest_id
+        // IS NOT NULL", id)
+        // .stream().map(map -> map.getLong("guest_id"))
+        // .collect(Collectors.toList());
 
-    // ✅ Notify guests only if saved
-    // if (isSaved) {
-    //     List<Long> guestIds = Handler
-    //             .findAll("SELECT guest_id FROM event_invites WHERE event_id = ? AND guest_id IS NOT NULL", id)
-    //             .stream().map(map -> map.getLong("guest_id"))
-    //             .collect(Collectors.toList());
+        // if (guestIds != null && !guestIds.isEmpty()) {
+        // for (Long guestId : guestIds) {
+        // com.hionstudios.mypersonalinvite.model.Notification notification =
+        // new com.hionstudios.mypersonalinvite.model.Notification();
 
-    //     if (guestIds != null && !guestIds.isEmpty()) {
-    //         for (Long guestId : guestIds) {
-    //             com.hionstudios.mypersonalinvite.model.Notification notification =
-    //                     new com.hionstudios.mypersonalinvite.model.Notification();
+        // notification
+        // .set("sender_id", userId)
+        // .set("receiver_id", guestId)
+        // .set("event_id", id)
+        // .set("notification_type_id", NotificationType.EVENT)
+        // .set("content", "The event '" + title + "' has been updated.")
+        // .set("is_read", false)
+        // .set("href", "/events/" + id);
 
-    //             notification
-    //                     .set("sender_id", userId)
-    //                     .set("receiver_id", guestId)
-    //                     .set("event_id", id)
-    //                     .set("notification_type_id", NotificationType.EVENT)
-    //                     .set("content", "The event '" + title + "' has been updated.")
-    //                     .set("is_read", false)
-    //                     .set("href", "/events/" + id);
+        // notification.insert();
+        // }
+        // }
+        // }
 
-    //             notification.insert();
-    //         }
-    //     }
-    // }
+        // ✅ Thumbnail update logic
+        List<EventThumbnail> existingDbThumbs = EventThumbnail.where("event_id = ?", id);
 
-    // ✅ Thumbnail update logic
-    List<EventThumbnail> existingDbThumbs = EventThumbnail.where("event_id = ?", id);
-    Set<String> keepThumbIds = new HashSet<>();
+        // First, collect all resource IDs from incoming thumbnail list
+        Set<String> incomingThumbIds = new HashSet<>();
+        List<MultipartFile> newFiles = new ArrayList<>();
 
-    // Process incoming thumbnail list
-    if (thumbnail != null) {
-        for (Object input : thumbnail) {
-
-            // ✅ String = existing resource ID → keep
-            if (input instanceof String) {
-                keepThumbIds.add((String) input);
-            }
-            // ✅ MultipartFile = new image → upload & insert
-            else if (input instanceof MultipartFile) {
-                MultipartFile file = (MultipartFile) input;
-
-                MapResponse response = WorkDrive.upload(file, Folder.MYPERSONALINVITE, false);
-                String newResourceId = response != null ? response.getString("resource_id") : null;
-
-                if (newResourceId != null) {
-                    keepThumbIds.add(newResourceId);
-
-                    EventThumbnail newThumb = new EventThumbnail();
-                    newThumb.set("event_id", id);
-                    newThumb.set("thumbnail", newResourceId);
-                    newThumb.insert();
+        // Process incoming thumbnail list to separate existing IDs and new files
+        if (thumbnail != null) {
+            for (Object input : thumbnail) {
+                if (input instanceof String) {
+                    // ✅ String = existing resource ID → add to keep list
+                    incomingThumbIds.add((String) input);
+                } else if (input instanceof MultipartFile) {
+                    // ✅ MultipartFile = new image → will upload later
+                    newFiles.add((MultipartFile) input);
                 }
             }
         }
-    }
 
-    // ✅ Delete thumbnails not included in keep list
-    for (EventThumbnail dbThumb : existingDbThumbs) {
-        String oldThumbId = dbThumb.getString("thumbnail");
+        // Now process existing thumbnails - delete only those not in incoming list
+        for (EventThumbnail dbThumb : existingDbThumbs) {
+            String existingThumbId = dbThumb.getString("image");
 
-        if (!keepThumbIds.contains(oldThumbId)) {
-            WorkDrive.delete(oldThumbId);
-            dbThumb.delete();
+            if (!incomingThumbIds.contains(existingThumbId)) {
+                // This existing thumbnail is NOT in the incoming list → delete it
+                WorkDrive.delete(existingThumbId);
+
+                // Use delete() directly on the model instead of trying to modify frozen object
+                dbThumb.delete(); // This should work as delete() doesn't require thaw()
+            }
+            // If it exists in incomingThumbIds, do nothing → it's preserved
         }
-    }
 
-    return MapResponse.success();
-}
+        // Process new files and upload them
+        for (MultipartFile file : newFiles) {
+            MapResponse response = WorkDrive.upload(file, Folder.MYPERSONALINVITE, false);
+            String newResourceId = response != null ? response.getString("resource_id") : null;
+            System.out.println("newResourceId"+ newResourceId);
+
+            if (newResourceId != null) {
+                // Create a NEW EventThumbnail instance for insertion
+                EventThumbnail newThumb = new EventThumbnail();
+                newThumb.set("event_id", id);
+                newThumb.set("image", newResourceId);
+                newThumb.insert(); // Use insert() for new objects
+            }
+        }
+
+        return MapResponse.success();
+    }
 
     public MapResponse getUpcomingEventsForOwners() {
         Long userId = UserUtil.getUserid();
