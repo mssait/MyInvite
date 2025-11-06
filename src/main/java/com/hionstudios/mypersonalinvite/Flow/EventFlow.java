@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.google.api.client.auth.oauth2.Credential;
 import com.hionstudios.FirebaseNotificationService;
 import com.hionstudios.MapResponse;
 import com.hionstudios.WhatsAppUtil;
@@ -24,9 +25,12 @@ import com.hionstudios.mypersonalinvite.model.EventInvite;
 import com.hionstudios.mypersonalinvite.model.EventThumbnail;
 import com.hionstudios.mypersonalinvite.model.EventTodoList;
 import com.hionstudios.mypersonalinvite.model.FcmDeviceToken;
+import com.hionstudios.mypersonalinvite.model.GoogleOauth;
 import com.hionstudios.mypersonalinvite.model.GuestRsvp;
+import com.hionstudios.mypersonalinvite.model.Notification;
 import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
+import com.hionstudios.oauth.GoogleOauthService;
 import com.hionstudios.oauth.WorkDrive;
 import com.hionstudios.oauth.WorkDrive.Folder;
 import com.hionstudios.time.TimeUtil;
@@ -35,10 +39,13 @@ import com.hionstudios.time.TimeUtil;
 public class EventFlow {
 
     private final FirebaseNotificationService firebaseNotificationService;
+    private final GoogleOauthService googleService;
 
     @Autowired
-    public EventFlow(FirebaseNotificationService firebaseNotificationService) {
+    public EventFlow(FirebaseNotificationService firebaseNotificationService,
+            GoogleOauthService googleService) {
         this.firebaseNotificationService = firebaseNotificationService;
+        this.googleService = googleService;
     }
 
     public MapResponse getAllEvents() {
@@ -226,10 +233,10 @@ public class EventFlow {
         if (thumbnail != null) {
             for (Object input : thumbnail) {
                 if (input instanceof String) {
-                    // ✅ String = existing resource ID → add to keep list
+                    // String = existing resource ID → add to keep list
                     incomingThumbIds.add((String) input);
                 } else if (input instanceof MultipartFile) {
-                    // ✅ MultipartFile = new image → will upload later
+                    // MultipartFile = new image → will upload later
                     newFiles.add((MultipartFile) input);
                 }
             }
@@ -253,7 +260,7 @@ public class EventFlow {
         for (MultipartFile file : newFiles) {
             MapResponse response = WorkDrive.upload(file, Folder.MYPERSONALINVITE, false);
             String newResourceId = response != null ? response.getString("resource_id") : null;
-            System.out.println("newResourceId"+ newResourceId);
+            System.out.println("newResourceId" + newResourceId);
 
             if (newResourceId != null) {
                 // Create a NEW EventThumbnail instance for insertion
@@ -431,7 +438,10 @@ public class EventFlow {
     }
 
     public MapResponse updateRsvp(Long id, Long rsvp) {
+
         Long userId = UserUtil.getUserid();
+        String name = UserUtil.getName();
+
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
@@ -440,8 +450,59 @@ public class EventFlow {
             return MapResponse.failure("They are not invited to this event");
         }
 
+        Event event = Event.findById(id);
+
         invite.set("rsvp_status_id", rsvp);
-        invite.saveIt();
+        boolean isInserted = invite.saveIt();
+
+        if (isInserted) {
+            Notification notification = new Notification();
+            notification.set("sender_id", userId);
+            notification.set("receiver_id", event.getLong("owner_id"));
+            notification.set("event_id", id);
+            notification.set("notification_type_id", NotificationType.getId(NotificationType.RSVP));
+            notification.set("content", name + " " + "responded to your invite");
+            notification.set("is_read", false);
+            notification.set("href", "/events/" + id + "/event/" + id);
+            notification.insert();
+
+            if (event != null) {
+                Long ownerId = event.getLong("owner_id");
+                if (ownerId != null && !ownerId.equals(userId)) {
+                    // Build notification content
+                    User user = User.findById(userId);
+                    String userName = user != null ? user.getString("name") : "A guest";
+                    String eventTitle = event.getString("title");
+                    String notifTitle = "RSVP Updated";
+                    String notifBody = userName + " has updated their RSVP for " + eventTitle;
+                    // String notifLink = "/events/" + id + "/guests";
+
+                    // Send push notification to owner
+                    try {
+                        List<FcmDeviceToken> tokens = FcmDeviceToken.where(
+                                "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
+                                ownerId);
+
+                        for (FcmDeviceToken token : tokens) {
+                            String fcmToken = token.getString("fcm_token");
+                            if (fcmToken == null || fcmToken.isEmpty())
+                                continue;
+
+                            try {
+                                firebaseNotificationService.sendNotification(
+                                        fcmToken,
+                                        notifTitle,
+                                        notifBody);
+                            } catch (Exception e) {
+                                System.err.println("FCM send failed for token " + fcmToken + ": " + e.getMessage());
+                            }
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error sending notification to event owner: " + e.getMessage());
+                    }
+                }
+            }
+        }
 
         return MapResponse.success("RSVP updated successfully");
     }
@@ -656,6 +717,73 @@ public class EventFlow {
                     } catch (Exception e) {
                         // Guardrail to prevent push issues from breaking the main flow
                         System.err.println("Push notification error: " + e.getMessage());
+                    }
+
+                    try {
+                        // Check if user has an email
+                        String guestEmail = user.getString("email");
+                        if (guestEmail != null && !guestEmail.isEmpty()) {
+
+                            // Find the event details
+                            Event event = Event.findById(id);
+                            if (event != null) {
+                                // Get event owner info
+                                Long ownerId = event.getLong("owner_id");
+                                GoogleOauth ownerOauth = GoogleOauth.findFirst("user_id = ?", ownerId);
+
+                                if (ownerOauth != null) {
+                                    // Build credential for owner
+                                    Credential credential = googleService.buildCredentialFromTokens(
+                                            ownerOauth.getString("access_token"),
+                                            ownerOauth.getString("refresh_token"),
+                                            ownerOauth.getLong("expiry"));
+
+                                    // Optionally refresh token if needed
+                                    try {
+                                        Long secs = credential.getExpiresInSeconds();
+                                        if (secs == null || secs <= 60) {
+                                            credential.refreshToken();
+                                            ownerOauth.set("access_token", credential.getAccessToken())
+                                                    .set("refresh_token", credential.getRefreshToken())
+                                                    .set("expiry", credential.getExpirationTimeMilliseconds())
+                                                    .saveIt();
+                                        }
+                                    } catch (Exception e) {
+                                        System.err.println("Token refresh failed for owner: " + e.getMessage());
+                                    }
+
+                                    // Create Google Calendar event for this guest
+                                    try {
+                                        String eventTitle = event.getString("event_name");
+                                        String eventDescription = "You’ve been invited to the event: " + eventTitle;
+                                        String startTime = event.getString("start_time"); // ensure ISO 8601 format
+                                        String endTime = event.getString("end_time"); // ensure ISO 8601 format
+
+                                        googleService.createCalendarEvent(
+                                                credential,
+                                                eventTitle,
+                                                eventDescription,
+                                                startTime,
+                                                endTime,
+                                                List.of(guestEmail) // Add guest’s email to calendar invite
+                                        );
+
+                                        System.out.println("Google Calendar invite sent to " + guestEmail);
+                                    } catch (Exception ex) {
+                                        System.err.println("Failed to create Google Calendar event for guest "
+                                                + guestEmail + ": " + ex.getMessage());
+                                    }
+                                } else {
+                                    System.out.println(
+                                            "Event owner has not connected Google Calendar, skipping invite for "
+                                                    + guestEmail);
+                                }
+                            }
+                        } else {
+                            System.out.println("Guest has no email, skipping Google Calendar invite.");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Error adding Google Calendar invite: " + e.getMessage());
                     }
                     added++;
                 } else {

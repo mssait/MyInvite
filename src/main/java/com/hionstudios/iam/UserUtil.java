@@ -33,6 +33,10 @@ public class UserUtil {
         return getUserDetails().getUsername();
     }
 
+    public static String getName() {
+        return getUserDetails().getName();
+    }
+
     public static MapResponse forgotPassword(String phone_number) {
 
         String sql = "Select * From Users Where Phone_Number = ? ";

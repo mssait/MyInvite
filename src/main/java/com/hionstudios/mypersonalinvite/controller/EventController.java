@@ -36,7 +36,7 @@ public class EventController {
     public EventController(EventFlow eventFlow) {
         this.eventFlow = eventFlow;
     }
-    
+
     @GetMapping("all")
     @IsAdmin
     public ResponseEntity<MapResponse> getAllEvents() {
@@ -155,7 +155,7 @@ public class EventController {
     }
 
     @GetMapping("{id}/details/invited-to")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> getInvitedToEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> eventFlow.getInvitedToEventDetails(id)).read();
     }
@@ -179,7 +179,7 @@ public class EventController {
     }
 
     @GetMapping("{id}/view-budget")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> viewBudget(@PathVariable Long id) {
         return ((DbTransaction) () -> eventFlow.viewBudget(id)).read();
     }
@@ -196,7 +196,7 @@ public class EventController {
             @PathVariable Long id,
             @RequestParam(required = false) List<String> emailList,
             @RequestBody(required = false) List<Map<String, String>> guestList) {
-            return ((DbTransaction) () -> eventFlow.postEventGuest(id, emailList, guestList)).write();
+        return ((DbTransaction) () -> eventFlow.postEventGuest(id, emailList, guestList)).write();
     }
 
     @PutMapping("guest/{id}/rsvp")

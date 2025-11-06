@@ -291,7 +291,7 @@ CREATE TABLE IF NOT EXISTS NOTIFICATION_TYPES (
 
 INSERT INTO NOTIFICATION_TYPES (TYPE)
 VALUES
-    ('RsvP'),
+    ('Rsvp'),
     ('Carpool'),
     ('Event'),
     ('Admin');
