@@ -243,17 +243,16 @@ public class EventFlow {
             }
         }
 
-        // Create a copy of existing thumbnails to avoid modification during iteration
-        List<EventThumbnail> existingThumbsCopy = new ArrayList<>(existingDbThumbs);
-
         // Now process existing thumbnails - delete only those not in incoming list
-        for (EventThumbnail dbThumb : existingThumbsCopy) {
+        for (EventThumbnail dbThumb : existingDbThumbs) {
             String existingThumbId = dbThumb.getString("image");
 
             if (!incomingThumbIds.contains(existingThumbId)) {
                 // This existing thumbnail is NOT in the incoming list → delete it
                 WorkDrive.delete(existingThumbId);
-                dbThumb.delete();
+
+                // Use delete() directly on the model instead of trying to modify frozen object
+                dbThumb.delete(); // This should work as delete() doesn't require thaw()
             }
             // If it exists in incomingThumbIds, do nothing → it's preserved
         }
@@ -262,18 +261,14 @@ public class EventFlow {
         for (MultipartFile file : newFiles) {
             MapResponse response = WorkDrive.upload(file, Folder.MYPERSONALINVITE, false);
             String newResourceId = response != null ? response.getString("resource_id") : null;
+            System.out.println("newResourceId"+ newResourceId);
 
             if (newResourceId != null) {
-                // Check if this resource ID already exists in database to avoid duplicates
-                boolean alreadyExists = existingDbThumbs.stream()
-                        .anyMatch(thumb -> newResourceId.equals(thumb.getString("image")));
-
-                if (!alreadyExists) {
-                    EventThumbnail newThumb = new EventThumbnail();
-                    newThumb.set("event_id", id);
-                    newThumb.set("image", newResourceId);
-                    newThumb.insert();
-                }
+                // Create a NEW EventThumbnail instance for insertion
+                EventThumbnail newThumb = new EventThumbnail();
+                newThumb.set("event_id", id);
+                newThumb.set("image", newResourceId);
+                newThumb.insert(); // Use insert() for new objects
             }
         }
 
