@@ -192,24 +192,24 @@ public class EventFlow {
         event.set("location_longitude", longitude);
         boolean isSaved = event.saveIt();
 
-        if (isSaved) {
-            List<Long> guestIds = Handler
-                    .findAll("Select Guest_Id From Event_Invites Where Event_Id = ? And Guest_Id Is Not Null", id)
-                    .stream().map(map -> map.getLong("guest_id")).collect(Collectors.toList());
-            if (guestIds != null && !guestIds.isEmpty()) {
-                for (Long guestId : guestIds) {
-                    com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
-                    notification.set("sender_id", userId);
-                    notification.set("receiver_id", guestId);
-                    notification.set("event_id", id);
-                    notification.set("notification_type_id", NotificationType.EVENT);
-                    notification.set("content", "The event '" + title + "' has been updated.");
-                    notification.set("is_read", false);
-                    notification.set("href", "/events/" + id);
-                    notification.insert();
-                }
-            }
-        }
+        // if (isSaved) {
+        //     List<Long> guestIds = Handler
+        //             .findAll("Select Guest_Id From Event_Invites Where Event_Id = ? And Guest_Id Is Not Null", id)
+        //             .stream().map(map -> map.getLong("guest_id")).collect(Collectors.toList());
+        //     if (guestIds != null && !guestIds.isEmpty()) {
+        //         for (Long guestId : guestIds) {
+        //             com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
+        //             notification.set("sender_id", userId);
+        //             notification.set("receiver_id", guestId);
+        //             notification.set("event_id", id);
+        //             notification.set("notification_type_id", NotificationType.EVENT);
+        //             notification.set("content", "The event '" + title + "' has been updated.");
+        //             notification.set("is_read", false);
+        //             notification.set("href", "/events/" + id);
+        //             notification.insert();
+        //         }
+        //     }
+        // }
 
         List<EventThumbnail> existingThumbs = EventThumbnail.where("event_id = ?", id);
         List<String> keepThumbIds = new ArrayList<>();
@@ -259,7 +259,7 @@ public class EventFlow {
     }
 
     public MapResponse getCompletedEventsForOwners() {
-        
+
         Long userId = UserUtil.getUserid();
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
