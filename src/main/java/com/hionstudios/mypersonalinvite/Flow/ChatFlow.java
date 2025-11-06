@@ -1,5 +1,6 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,10 +13,12 @@ import com.hionstudios.FirebaseNotificationService;
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
+import com.hionstudios.mypersonalinvite.model.Event;
 import com.hionstudios.mypersonalinvite.model.EventInvite;
 import com.hionstudios.mypersonalinvite.model.EventMessage;
 import com.hionstudios.mypersonalinvite.model.EventMessageRead;
 import com.hionstudios.mypersonalinvite.model.FcmDeviceToken;
+import com.hionstudios.mypersonalinvite.model.User;
 
 @Service
 public class ChatFlow {
@@ -28,10 +31,11 @@ public class ChatFlow {
     }
 
     public MapResponse sendMessage(long id, String messageText) {
-        Long senderId = UserUtil.getUserid();
-        if (senderId == null || senderId <= 0) {
-            return MapResponse.failure("User not authenticated");
-        }
+        long senderId = 3;
+        // Long senderId = UserUtil.getUserid();
+        // if (senderId == null || senderId <= 0) {
+        // return MapResponse.failure("User not authenticated");
+        // }
 
         // Save the message to DB
         EventMessage message = new EventMessage();
@@ -47,25 +51,50 @@ public class ChatFlow {
         }
 
         // Extract guest IDs (excluding sender)
-        List<Long> guestIds = invites.stream()
-                .map(inv -> inv.getLong("guest_id"))
-                .filter(guestId -> !guestId.equals(senderId))
-                .toList();
+        List<Long> guestIds = new ArrayList<>(
+                invites.stream()
+                        .map(inv -> inv.getLong("guest_id"))
+                        .filter(guestId -> guestId != null && !guestId.equals(senderId))
+                        .distinct()
+                        .toList());
+
+        Event event = Event.findById(id);
+        if (event != null) {
+            Long ownerId = event.getLong("owner_id");
+            if (ownerId != null && !ownerId.equals(senderId) && !guestIds.contains(ownerId)) {
+                guestIds.add(ownerId);
+            }
+        }
 
         // Fetch FCM tokens of all guests
-        List<FcmDeviceToken> fcmTokens = FcmDeviceToken.where("user_id IN (?)",
-                String.join(",", guestIds.stream().map(String::valueOf).toList()));
+        User sender = User.findById(senderId);
+        String senderName = sender != null ? sender.getString("name") : "A participant";
+        String notifTitle = "New message in event chat";
+        String notifBody = senderName + ": " + messageText;
 
-        // Send notifications
-        String title = "New Message in Event Chat";
-        String body = messageText.length() > 50 ? messageText.substring(0, 50) + "..." : messageText;
-
-        for (FcmDeviceToken token : fcmTokens) {
+        // Fetch and send push notifications for all recipients
+        for (Long receiverId : guestIds) {
             try {
-                firebaseNotificationService.sendNotification(token.getString("fcm_token"), title, body);
+                List<FcmDeviceToken> tokens = FcmDeviceToken.where(
+                        "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
+                        receiverId);
+
+                for (FcmDeviceToken token : tokens) {
+                    String fcmToken = token.getString("fcm_token");
+                    if (fcmToken == null || fcmToken.isEmpty())
+                        continue;
+
+                    try {
+                        firebaseNotificationService.sendNotification(
+                                fcmToken,
+                                notifTitle,
+                                notifBody);
+                    } catch (Exception e) {
+                        System.err.println("FCM send failed for token " + fcmToken + ": " + e.getMessage());
+                    }
+                }
             } catch (Exception e) {
-                System.err
-                        .println("FCM send failed for token " + token.getString("fcm_token") + ": " + e.getMessage());
+                System.err.println("Error sending notification to user " + receiverId + ": " + e.getMessage());
             }
         }
 
