@@ -99,20 +99,20 @@ public class EventController {
     }
 
     @PutMapping("{id}/edit")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> editEvent(
             @PathVariable Long id,
-            @RequestParam int event_type_id,
-            @RequestParam String title,
-            @RequestParam String description,
-            @RequestParam int no_of_guest,
-            @RequestParam String date,
-            @RequestParam String start_time,
-            @RequestParam String end_time,
-            @RequestParam String address,
-            @RequestParam String gift_suggestion,
-            @RequestParam double latitude,
-            @RequestParam double longitude,
+            @RequestParam(required = false) int event_type_id,
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String description,
+            @RequestParam(required = false) int no_of_guest,
+            @RequestParam(required = false) String date,
+            @RequestParam(required = false) String start_time,
+            @RequestParam(required = false) String end_time,
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String gift_suggestion,
+            @RequestParam(required = false) double latitude,
+            @RequestParam(required = false) double longitude,
             @MixMultipartFileAndString @RequestParam(required = false) List<Object> thumbnail) {
 
         return ((DbTransaction) () -> eventFlow.editEvent(
@@ -246,7 +246,7 @@ public class EventController {
     }
 
     @GetMapping("types")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> getEventTypes() {
         return ((DbTransaction) () -> eventFlow.getEventTypes()).read();
     }

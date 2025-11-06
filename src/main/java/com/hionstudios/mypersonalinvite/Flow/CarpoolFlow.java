@@ -1,5 +1,7 @@
 package com.hionstudios.mypersonalinvite.Flow;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,18 +100,27 @@ public class CarpoolFlow {
     }
 
     public MapResponse putCarpool(Long id, String car_model, String car_number, String car_color,
-            int available_seats, boolean ladies_accompanied, String start_location, String start_date_time,
+            int available_seats, boolean ladies_accompanied, String start_latitude_location,
+            String start_longitude_location, String start_date_time,
             String end_date_time, String notes) {
+
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+        LocalTime parsedStartTime = LocalTime.parse(start_date_time, timeFormatter);
+        long startTimeMillis = parsedStartTime.toSecondOfDay() * 1000L;
+
+        LocalTime parsedEndTime = LocalTime.parse(end_date_time, timeFormatter);
+        long endTimeMillis = parsedEndTime.toSecondOfDay() * 1000L;
 
         Carpool carpool = Carpool.findById(id);
         carpool.set("car_model", car_model);
         carpool.set("car_color", car_color);
         carpool.set("car_number", car_number);
-        carpool.set("available_seats", available_seats);
+        carpool.set("available_seat", available_seats);
         carpool.set("ladies_accompanied", ladies_accompanied);
-        carpool.set("start_location", start_location);
-        carpool.set("start_date_time", start_date_time);
-        carpool.set("end_date_time", end_date_time);
+        carpool.set("start_location_latitude", start_latitude_location);
+        carpool.set("start_location_longitude", start_longitude_location);
+        carpool.set("start_date_time", startTimeMillis);
+        carpool.set("end_date_time", endTimeMillis);
         carpool.set("notes", notes);
 
         return carpool.save() ? MapResponse.success() : MapResponse.failure("Failed to create carpool");
@@ -194,7 +205,7 @@ public class CarpoolFlow {
         }
     }
 
-    public MapResponse putCarpoolRequest(Long id, String no_of_people, boolean ladies_accompanied,
+    public MapResponse putCarpoolRequest(Long id, int no_of_people, boolean ladies_accompanied,
             String notes) {
 
         CarpoolRequest request = CarpoolRequest.findById(id);
