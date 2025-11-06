@@ -29,7 +29,8 @@ public class UserFlow {
         return response;
     }
 
-    public MapResponse editProfile(String name, String phone_number, String password, String email, Object profile_pic ) {
+    public MapResponse editProfile(String name, String phone_number, String password, String email,
+            MultipartFile profile_pic) {
 
         long userId = UserUtil.getUserid();
 
@@ -40,18 +41,18 @@ public class UserFlow {
 
         String avatar = null;
 
-        if (profile_pic instanceof MultipartFile) {
+        if (profile_pic != null) {
             MapResponse response = WorkDrive.upload((MultipartFile) profile_pic, Folder.MYPERSONALINVITE, false);
             avatar = response != null ? response.getString("resource_id") : null;
-        } else {
-            avatar = (String) profile_pic;
         }
 
         user.set("name", name);
         user.set("email", email);
         user.set("phone_number", phone_number);
         user.set("password", password);
-        user.set("profile_pic", avatar);
+        if (avatar != null) {
+            user.set("profile_pic", avatar);
+        }
 
         return user.save() ? MapResponse.success() : MapResponse.failure();
     }
