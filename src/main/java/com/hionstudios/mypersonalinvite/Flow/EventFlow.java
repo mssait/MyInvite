@@ -3,8 +3,10 @@ package com.hionstudios.mypersonalinvite.Flow;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.web.multipart.MultipartFile;
@@ -154,94 +156,115 @@ public class EventFlow {
         return MapResponse.success();
     }
 
-    public MapResponse editEvent(Long id, int event_type_id, String title, String description,
-            int no_of_guest,
-            String date, String start_time, String end_time, String address, String gift_suggestion,
-            double latitude, double longitude, List<Object> thumbnail) {
+public MapResponse editEvent(
+        Long id, int event_type_id, String title, String description,
+        int no_of_guest, String date, String start_time, String end_time,
+        String address, String gift_suggestion, double latitude,
+        double longitude, List<Object> thumbnail
+) {
+    Long userId = UserUtil.getUserid();
+    if (userId == null || userId <= 0)
+        return MapResponse.failure("User not authenticated");
 
-        Long userId = UserUtil.getUserid();
-        if (userId == null || userId <= 0)
-            return MapResponse.failure("User not authenticated");
+    Event event = Event.findById(id);
+    if (event == null)
+        return MapResponse.failure("Event not found");
 
-        Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
+    if (!event.getLong("owner_id").equals(userId))
+        return MapResponse.failure("Not allowed");
 
-        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
-        LocalTime parsedStartTime = LocalTime.parse(start_time, timeFormatter);
-        long startTimeMillis = parsedStartTime.toSecondOfDay() * 1000L;
+    // --- Update event details ---
+    Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
 
-        LocalTime parsedEndTime = LocalTime.parse(end_time, timeFormatter);
-        long endTimeMillis = parsedEndTime.toSecondOfDay() * 1000L;
+    DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
 
-        Event event = Event.findById(id);
-        if (event == null)
-            return MapResponse.failure("Event not found");
+    long startTimeMillis = LocalTime.parse(start_time, timeFormatter).toSecondOfDay() * 1000L;
+    long endTimeMillis   = LocalTime.parse(end_time,   timeFormatter).toSecondOfDay() * 1000L;
 
-        if (!event.getLong("owner_id").equals(userId))
-            return MapResponse.failure("Not allowed");
+    event
+        .set("event_type_id", event_type_id)
+        .set("title", title)
+        .set("description", description)
+        .set("no_of_guest", no_of_guest)
+        .set("date", parsedDate)
+        .set("start_time", startTimeMillis)
+        .set("end_time", endTimeMillis)
+        .set("address", address)
+        .set("gift_suggestion", gift_suggestion)
+        .set("location_latitude", latitude)
+        .set("location_longitude", longitude);
 
-        event.set("event_type_id", event_type_id);
-        event.set("title", title);
-        event.set("description", description);
-        event.set("no_of_guest", no_of_guest);
-        event.set("date", parsedDate);
-        event.set("start_time", startTimeMillis);
-        event.set("end_time", endTimeMillis);
-        event.set("address", address);
-        event.set("gift_suggestion", gift_suggestion);
-        event.set("location_latitude", latitude);
-        event.set("location_longitude", longitude);
-        boolean isSaved = event.saveIt();
+    boolean isSaved = event.saveIt();
 
-        // if (isSaved) {
-        //     List<Long> guestIds = Handler
-        //             .findAll("Select Guest_Id From Event_Invites Where Event_Id = ? And Guest_Id Is Not Null", id)
-        //             .stream().map(map -> map.getLong("guest_id")).collect(Collectors.toList());
-        //     if (guestIds != null && !guestIds.isEmpty()) {
-        //         for (Long guestId : guestIds) {
-        //             com.hionstudios.mypersonalinvite.model.Notification notification = new com.hionstudios.mypersonalinvite.model.Notification();
-        //             notification.set("sender_id", userId);
-        //             notification.set("receiver_id", guestId);
-        //             notification.set("event_id", id);
-        //             notification.set("notification_type_id", NotificationType.EVENT);
-        //             notification.set("content", "The event '" + title + "' has been updated.");
-        //             notification.set("is_read", false);
-        //             notification.set("href", "/events/" + id);
-        //             notification.insert();
-        //         }
-        //     }
-        // }
+    // ✅ Notify guests only if saved
+    // if (isSaved) {
+    //     List<Long> guestIds = Handler
+    //             .findAll("SELECT guest_id FROM event_invites WHERE event_id = ? AND guest_id IS NOT NULL", id)
+    //             .stream().map(map -> map.getLong("guest_id"))
+    //             .collect(Collectors.toList());
 
-        List<EventThumbnail> existingThumbs = EventThumbnail.where("event_id = ?", id);
-        List<String> keepThumbIds = new ArrayList<>();
+    //     if (guestIds != null && !guestIds.isEmpty()) {
+    //         for (Long guestId : guestIds) {
+    //             com.hionstudios.mypersonalinvite.model.Notification notification =
+    //                     new com.hionstudios.mypersonalinvite.model.Notification();
 
-        if (thumbnail != null) {
-            for (Object item : thumbnail) {
-                if (item instanceof String) {
-                    keepThumbIds.add((String) item); // keep existing
-                } else if (item instanceof MultipartFile) {
-                    MultipartFile file = (MultipartFile) item;
-                    MapResponse response = WorkDrive.upload(file, Folder.MYPERSONALINVITE, false);
-                    String imageId = response != null ? response.getString("resource_id") : null;
-                    if (imageId != null) {
-                        EventThumbnail newThumb = new EventThumbnail();
-                        newThumb.set("event_id", id);
-                        newThumb.set("thumbnail", imageId);
-                        newThumb.insert();
-                    }
+    //             notification
+    //                     .set("sender_id", userId)
+    //                     .set("receiver_id", guestId)
+    //                     .set("event_id", id)
+    //                     .set("notification_type_id", NotificationType.EVENT)
+    //                     .set("content", "The event '" + title + "' has been updated.")
+    //                     .set("is_read", false)
+    //                     .set("href", "/events/" + id);
+
+    //             notification.insert();
+    //         }
+    //     }
+    // }
+
+    // ✅ Thumbnail update logic
+    List<EventThumbnail> existingDbThumbs = EventThumbnail.where("event_id = ?", id);
+    Set<String> keepThumbIds = new HashSet<>();
+
+    // Process incoming thumbnail list
+    if (thumbnail != null) {
+        for (Object input : thumbnail) {
+
+            // ✅ String = existing resource ID → keep
+            if (input instanceof String) {
+                keepThumbIds.add((String) input);
+            }
+            // ✅ MultipartFile = new image → upload & insert
+            else if (input instanceof MultipartFile) {
+                MultipartFile file = (MultipartFile) input;
+
+                MapResponse response = WorkDrive.upload(file, Folder.MYPERSONALINVITE, false);
+                String newResourceId = response != null ? response.getString("resource_id") : null;
+
+                if (newResourceId != null) {
+                    keepThumbIds.add(newResourceId);
+
+                    EventThumbnail newThumb = new EventThumbnail();
+                    newThumb.set("event_id", id);
+                    newThumb.set("thumbnail", newResourceId);
+                    newThumb.insert();
                 }
             }
         }
-
-        for (EventThumbnail thumb : existingThumbs) {
-            String thumbId = thumb.getString("thumbnail");
-            if (!keepThumbIds.contains(thumbId)) {
-                WorkDrive.delete(thumbId);
-                thumb.delete();
-            }
-        }
-
-        return MapResponse.success();
     }
+
+    // ✅ Delete thumbnails not included in keep list
+    for (EventThumbnail dbThumb : existingDbThumbs) {
+        String oldThumbId = dbThumb.getString("thumbnail");
+
+        if (!keepThumbIds.contains(oldThumbId)) {
+            WorkDrive.delete(oldThumbId);
+            dbThumb.delete();
+        }
+    }
+
+    return MapResponse.success();
+}
 
     public MapResponse getUpcomingEventsForOwners() {
         Long userId = UserUtil.getUserid();
