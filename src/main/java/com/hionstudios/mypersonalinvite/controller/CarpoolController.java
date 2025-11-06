@@ -1,5 +1,6 @@
 package com.hionstudios.mypersonalinvite.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,13 @@ import com.hionstudios.mypersonalinvite.Flow.CarpoolFlow;
 @RequestMapping("api/carpool")
 public class CarpoolController {
 
+     private final CarpoolFlow carpoolFlow;
+
+    @Autowired
+    public CarpoolController(CarpoolFlow carpoolFlow) {
+        this.carpoolFlow = carpoolFlow;
+    }
+
     @PostMapping("event/{id}/add")
     @IsUser
     public ResponseEntity<MapResponse> addCarpool(
@@ -34,7 +42,7 @@ public class CarpoolController {
             @RequestParam String start_date_time,
             @RequestParam String end_date_time,
             @RequestParam(required = false) String notes) {
-        return ((DbTransaction) () -> new CarpoolFlow().postCarpool(id, car_model, car_number, car_color,
+        return ((DbTransaction) () -> carpoolFlow.postCarpool(id, car_model, car_number, car_color,
                 available_seats, ladies_accompanied, start_location_latitude, start_location_longitude, address, start_date_time, end_date_time, notes)).write();
 
     }
@@ -42,25 +50,25 @@ public class CarpoolController {
     @GetMapping("{id}/details")
     @IsUser
     public ResponseEntity<MapResponse> getCarpoolDetails(@PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().getCarpoolDetails(id)).read();
+        return ((DbTransaction) () -> carpoolFlow.getCarpoolDetails(id)).read();
     }
 
     @DeleteMapping("{id}/delete")
     @IsUser
     public ResponseEntity<MapResponse> deleteCarpool(@PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().deleteCarpool(id)).write();
+        return ((DbTransaction) () -> carpoolFlow.deleteCarpool(id)).write();
     }
 
     @GetMapping("request/{id}/details")
     // @IsUser
     public ResponseEntity<MapResponse> getCarpoolRequestDetails(@PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolRequest(id)).read();
+        return ((DbTransaction) () -> carpoolFlow.viewCarpoolRequest(id)).read();
     }
 
     @GetMapping("{id}/view-request")
     @IsUser
     public ResponseEntity<MapResponse> viewCarpoolRequest(@PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolRequestDetails(id)).read();
+        return ((DbTransaction) () -> carpoolFlow.viewCarpoolRequestDetails(id)).read();
     }
 
     @PutMapping("{id}/edit")
@@ -76,7 +84,7 @@ public class CarpoolController {
             @RequestParam(required = false) String start_date_time,
             @RequestParam(required = false) String end_date_time,
             @RequestParam(required = false) String notes) {
-        return ((DbTransaction) () -> new CarpoolFlow().putCarpool(id, car_model, car_number, car_color,
+        return ((DbTransaction) () -> carpoolFlow.putCarpool(id, car_model, car_number, car_color,
                 available_seats, ladies_accompanied, start_location, start_date_time, end_date_time, notes)).write();
 
     }
@@ -88,7 +96,7 @@ public class CarpoolController {
             @RequestParam int no_of_people,
             @RequestParam boolean ladies_accompanied,
             @RequestParam(required = false) String notes) {
-        return ((DbTransaction) () -> new CarpoolFlow().postCarpoolRequest(id, no_of_people, ladies_accompanied, notes))
+        return ((DbTransaction) () -> carpoolFlow.postCarpoolRequest(id, no_of_people, ladies_accompanied, notes))
                 .write();
 
     }
@@ -97,7 +105,7 @@ public class CarpoolController {
     @IsUser
     public ResponseEntity<MapResponse> deleteCarpoolRequest(
             @PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().deleteCarpoolRequest(id)).write();
+        return ((DbTransaction) () -> carpoolFlow.deleteCarpoolRequest(id)).write();
     }
 
     @PutMapping("request/{id}/edit")
@@ -107,7 +115,7 @@ public class CarpoolController {
             @RequestParam String no_of_people,
             @RequestParam boolean ladies_accompanied,
             @RequestParam String notes) {
-        return ((DbTransaction) () -> new CarpoolFlow().putCarpoolRequest(id, no_of_people, ladies_accompanied, notes))
+        return ((DbTransaction) () -> carpoolFlow.putCarpoolRequest(id, no_of_people, ladies_accompanied, notes))
                 .write();
 
     }
@@ -117,31 +125,31 @@ public class CarpoolController {
     public ResponseEntity<MapResponse> respondToCarpoolRequest(
             @PathVariable Long id,
             @RequestParam boolean response) {
-        return ((DbTransaction) () -> new CarpoolFlow().respondToCarpoolRequest(id, response)).write();
+        return ((DbTransaction) () -> carpoolFlow.respondToCarpoolRequest(id, response)).write();
     }
 
     @GetMapping("event/{id}")
     @IsUser
     public ResponseEntity<MapResponse> viewCarpool(
             @PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().viewCarpool(id)).read();
+        return ((DbTransaction) () -> carpoolFlow.viewCarpool(id)).read();
     }
 
     @GetMapping("{id}/guest")
     @IsUser
     public ResponseEntity<MapResponse> viewCarpoolGuests(@PathVariable Long id) {
-        return ((DbTransaction) () -> new CarpoolFlow().viewCarpoolGuests(id)).read();
+        return ((DbTransaction) () -> carpoolFlow.viewCarpoolGuests(id)).read();
     }
 
     @GetMapping("my-carpools")
     @IsUser
     public ResponseEntity<MapResponse> viewMyCarpools() {
-        return ((DbTransaction) () -> new CarpoolFlow().viewMyCarpools()).read();
+        return ((DbTransaction) () -> carpoolFlow.viewMyCarpools()).read();
     }
 
     @GetMapping("my-requests")
     @IsUser
     public ResponseEntity<MapResponse> viewMyCarpoolRequests() {
-        return ((DbTransaction) () -> new CarpoolFlow().viewMyCarpoolRequests()).read();
+        return ((DbTransaction) () -> carpoolFlow.viewMyCarpoolRequests()).read();
     }
 }

@@ -7,8 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.hionstudios.FirebaseNotificationService;
 import com.hionstudios.MapResponse;
 import com.hionstudios.WhatsAppUtil;
 import com.hionstudios.db.Handler;
@@ -18,6 +21,7 @@ import com.hionstudios.mypersonalinvite.model.EventBudget;
 import com.hionstudios.mypersonalinvite.model.EventInvite;
 import com.hionstudios.mypersonalinvite.model.EventThumbnail;
 import com.hionstudios.mypersonalinvite.model.EventTodoList;
+import com.hionstudios.mypersonalinvite.model.FcmDeviceToken;
 import com.hionstudios.mypersonalinvite.model.GuestRsvp;
 import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
@@ -25,29 +29,17 @@ import com.hionstudios.oauth.WorkDrive;
 import com.hionstudios.oauth.WorkDrive.Folder;
 import com.hionstudios.time.TimeUtil;
 
+@Service
 public class EventFlow {
 
+    private final FirebaseNotificationService firebaseNotificationService;
+
+    @Autowired
+    public EventFlow(FirebaseNotificationService firebaseNotificationService) {
+        this.firebaseNotificationService = firebaseNotificationService;
+    }
+
     public MapResponse getAllEvents() {
-        // String sql = "Select Events.Title, Events.Date, Events.Location_Latitude,
-        // Events.Location_Logitude, Event_Types.Type, Users.Name,
-        // COALESCE(jsonb_agg(Distinct jsonb_build_object('image',
-        // Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null),
-        // '[]'::jsonb) As Thumbnails, COALESCE(Jsonb_agg(Distinct
-        // jsonb_build_object('amount', Event_Budgets.Amount, 'description',
-        // Event_Budgets.Description, 'budget_type', Budget_Types.Type)) Filter (Where
-        // Event_Budgets.Id Is Not Null), '[]'::jsonb) As Budgets From Events Left Join
-        // Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join
-        // Event_Types On Events.Event_Type_Id = Event_Types.Id Left Join Users On
-        // Events.Owner_Id = Users.Id Left Join Event_Budgets On Events.Id =
-        // Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id
-        // = Budget_Types.Id Group By Events.Id, Events.Title, Events.Date,
-        // Events.Location_Latitude, Events.Location_Logitude, Event_Types.Type,
-        // Users.Name Order By Events.Date Desc";
-
-        // List<MapResponse> events = Handler.findAll(sql);
-        // MapResponse response = new MapResponse().put("AllEvents", events);
-        // return response;
-
         String sql = "Select Events.Id, Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Longitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Order By Events.Date Desc";
 
         return Handler.toDataGrid(sql);
@@ -537,6 +529,37 @@ public class EventFlow {
                         String msg = "Hi " + name + "! 🎉 You’ve been invited to our event.\nView details: "
                                 + eventLink;
                         WhatsAppUtil.sendWhatsAppMessage(phone, msg);
+                        try {
+                            // Fetch all non-empty tokens for this user
+                            List<FcmDeviceToken> tokens = FcmDeviceToken.where(
+                                    "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
+                                    user.getId());
+
+                            if (tokens != null && !tokens.isEmpty()) {
+                                // Minimal title/body; keep short to avoid OS truncation
+                                // String eventPath =
+                                final String notifTitle = "You've been invited to an event";
+                                final String notifBody = "Tap to view details: " + eventLink;
+
+                                for (FcmDeviceToken t : tokens) {
+                                    final String fcmToken = t.getString("fcm_token");
+                                    try {
+                                        firebaseNotificationService.sendNotification(fcmToken, notifTitle, notifBody);
+                                    } catch (Exception ex) {
+                                        // Do not fail the flow for a single-device push failure; log and continue
+                                        // Replace with your logger
+                                        System.err.println(
+                                                "FCM send failed for token " + fcmToken + ": " + ex.getMessage());
+                                    }
+                                }
+                            } else {
+                                // No device tokens; optional: log or enqueue for later
+                                System.out.println("No FCM tokens for user " + user.getId() + "; skipping push.");
+                            }
+                        } catch (Exception e) {
+                            // Guardrail to prevent push issues from breaking the main flow
+                            System.err.println("Push notification error: " + e.getMessage());
+                        }
                         added++;
                         continue;
                     }
@@ -563,6 +586,37 @@ public class EventFlow {
                     String msg = "Hi " + name + "! 🎉 You’ve been invited to our event.\nView details: "
                             + eventLink;
                     WhatsAppUtil.sendWhatsAppMessage(phone, msg);
+                    try {
+                        // Fetch all non-empty tokens for this user
+                        List<FcmDeviceToken> tokens = FcmDeviceToken.where(
+                                "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
+                                user.getId());
+
+                        if (tokens != null && !tokens.isEmpty()) {
+                            // Minimal title/body; keep short to avoid OS truncation
+                            // String eventPath =
+                            final String notifTitle = "You've been invited to an event";
+                            final String notifBody = "Tap to view details: " + eventLink;
+
+                            for (FcmDeviceToken t : tokens) {
+                                final String fcmToken = t.getString("fcm_token");
+                                try {
+                                    firebaseNotificationService.sendNotification(fcmToken, notifTitle, notifBody);
+                                } catch (Exception ex) {
+                                    // Do not fail the flow for a single-device push failure; log and continue
+                                    // Replace with your logger
+                                    System.err.println(
+                                            "FCM send failed for token " + fcmToken + ": " + ex.getMessage());
+                                }
+                            }
+                        } else {
+                            // No device tokens; optional: log or enqueue for later
+                            System.out.println("No FCM tokens for user " + user.getId() + "; skipping push.");
+                        }
+                    } catch (Exception e) {
+                        // Guardrail to prevent push issues from breaking the main flow
+                        System.err.println("Push notification error: " + e.getMessage());
+                    }
                     added++;
                 } else {
                     // Unregistered user: Create invite with GUEST_ID = null

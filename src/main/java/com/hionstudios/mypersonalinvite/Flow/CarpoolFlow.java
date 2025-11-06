@@ -2,6 +2,10 @@ package com.hionstudios.mypersonalinvite.Flow;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.hionstudios.FirebaseNotificationService;
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
@@ -9,12 +13,20 @@ import com.hionstudios.mypersonalinvite.model.Carpool;
 import com.hionstudios.mypersonalinvite.model.CarpoolGuest;
 import com.hionstudios.mypersonalinvite.model.CarpoolGuestStatus;
 import com.hionstudios.mypersonalinvite.model.CarpoolRequest;
+import com.hionstudios.mypersonalinvite.model.FcmDeviceToken;
 import com.hionstudios.mypersonalinvite.model.Notification;
 import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.time.TimeUtil;
-
+@Service
 public class CarpoolFlow {
+
+    private final FirebaseNotificationService firebaseNotificationService;
+
+    @Autowired
+    public CarpoolFlow(FirebaseNotificationService firebaseNotificationService) {
+        this.firebaseNotificationService = firebaseNotificationService;
+    }
 
     public MapResponse postCarpool(Long id, String car_model, String car_number, String car_color,
             int available_seats, boolean ladies_accompanied, double start_location_latitude,
@@ -137,8 +149,38 @@ public class CarpoolFlow {
                 notification.set("is_read", false);
                 notification.set("href", "/events/" + eventId + "/carpools/" + id);
                 notification.insert();
+
+                try {
+                List<FcmDeviceToken> tokens = FcmDeviceToken.where(
+                    "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
+                    ownerId
+                );
+
+                if (tokens != null && !tokens.isEmpty()) {
+                    final String notifTitle = "New Carpool Request";
+                    final String notifBody = senderName + " requested to join your carpool.";
+                    final String route = "/events/" + eventId + "/carpools/" + id;
+
+                    for (FcmDeviceToken t : tokens) {
+                        final String fcmToken = t.getString("fcm_token");
+
+                        try {
+                            // send with routing path
+                            firebaseNotificationService.sendNotification(fcmToken, notifTitle, notifBody);
+                            // if you want to include a route, extend your sendNotification to accept data map
+                        } catch (Exception ex) {
+                            System.err.println("FCM send failed for token " + fcmToken + ": " + ex.getMessage());
+                        }
+                    }
+                } else {
+                    System.out.println("No FCM tokens for user " + ownerId + "; skipping push.");
+                }
+            } catch (Exception e) {
+                System.err.println("Push notification error: " + e.getMessage());
+            }
             }
         }
+
         return isInserted ? MapResponse.success() : MapResponse.failure("Failed to create carpool request");
     }
 

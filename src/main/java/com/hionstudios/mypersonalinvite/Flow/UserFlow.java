@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.hionstudios.MapResponse;
+import com.hionstudios.WhatsAppUtil;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
 import com.hionstudios.mypersonalinvite.model.Role;
@@ -29,7 +30,8 @@ public class UserFlow {
         return response;
     }
 
-    public MapResponse editProfile(String name, String phone_number, String password, String email, Object profile_pic ) {
+    public MapResponse editProfile(String name, String phone_number, String password, String email,
+            Object profile_pic) {
 
         long userId = UserUtil.getUserid();
 
@@ -85,6 +87,7 @@ public class UserFlow {
             user.set("otp_code", otp);
             user.set("otp_expiry", expiry);
             user.saveIt();
+
             return MapResponse.success();
         }
 
@@ -100,6 +103,13 @@ public class UserFlow {
         UserRole role = new UserRole();
         role.set("user_id", user.getLongId());
         role.set("role_id", Role.getId(Role.USER));
+
+        String eventLink = "https://mypersonalinvite.com";
+        String msg = "Hi " + name + "! 🎉 Welcome to MY Invite!\n\n" +
+                " Registration Successful!\n ✅" +
+                "You can now create and manage your events "
+                + eventLink;
+        WhatsAppUtil.sendWhatsAppMessage(phone_number, msg);
 
         // sendOtpMessage(phone_number, otp);
 

@@ -5,25 +5,71 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.hionstudios.FirebaseNotificationService;
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.Handler;
 import com.hionstudios.iam.UserUtil;
+import com.hionstudios.mypersonalinvite.model.EventInvite;
 import com.hionstudios.mypersonalinvite.model.EventMessage;
 import com.hionstudios.mypersonalinvite.model.EventMessageRead;
+import com.hionstudios.mypersonalinvite.model.FcmDeviceToken;
 
+@Service
 public class ChatFlow {
-    public MapResponse sendMessage(long id, String messageText) {
-        Long userId = UserUtil.getUserid();
-        if (userId == null || userId <= 0)
-            return MapResponse.failure("User not authenticated");
 
+    private final FirebaseNotificationService firebaseNotificationService;
+
+    @Autowired
+    public ChatFlow(FirebaseNotificationService firebaseNotificationService) {
+        this.firebaseNotificationService = firebaseNotificationService;
+    }
+
+    public MapResponse sendMessage(long id, String messageText) {
+        Long senderId = UserUtil.getUserid();
+        if (senderId == null || senderId <= 0) {
+            return MapResponse.failure("User not authenticated");
+        }
+
+        // Save the message to DB
         EventMessage message = new EventMessage();
         message.set("event_id", id);
-        message.set("sender_id", userId);
+        message.set("sender_id", senderId);
         message.set("message", messageText);
         message.insert();
 
-        return MapResponse.success("Message sent").put("message_id", message.getLongId());
+        // Fetch all guests for the event
+        List<EventInvite> invites = EventInvite.where("event_id = ?", id);
+        if (invites.isEmpty()) {
+            return MapResponse.success("Message sent - no guests found");
+        }
+
+        // Extract guest IDs (excluding sender)
+        List<Long> guestIds = invites.stream()
+                .map(inv -> inv.getLong("guest_id"))
+                .filter(guestId -> !guestId.equals(senderId))
+                .toList();
+
+        // Fetch FCM tokens of all guests
+        List<FcmDeviceToken> fcmTokens = FcmDeviceToken.where("user_id IN (?)",
+                String.join(",", guestIds.stream().map(String::valueOf).toList()));
+
+        // Send notifications
+        String title = "New Message in Event Chat";
+        String body = messageText.length() > 50 ? messageText.substring(0, 50) + "..." : messageText;
+
+        for (FcmDeviceToken token : fcmTokens) {
+            try {
+                firebaseNotificationService.sendNotification(token.getString("fcm_token"), title, body);
+            } catch (Exception e) {
+                System.err
+                        .println("FCM send failed for token " + token.getString("fcm_token") + ": " + e.getMessage());
+            }
+        }
+
+        return MapResponse.success("Message sent successfully").put("message_id", message.getLongId());
     }
 
     public MapResponse getMessages(long id, Long afterMessageId) {
@@ -116,7 +162,7 @@ public class ChatFlow {
                 .put("unread_user_ids", notSeenUsers);
     }
 
-    public MapResponse getChatList() {  
+    public MapResponse getChatList() {
         Long userId = UserUtil.getUserid();
 
         String sql = "SELECT Events.id, Events.title, (SELECT Event_Thumbnails.image FROM Event_Thumbnails WHERE Event_Thumbnails.event_id = Events.id ORDER BY Event_Thumbnails.id ASC LIMIT 1) AS event_thumbnail, (SELECT jsonb_build_object('message', Event_Messages.message, 'last_msg_time', Event_Messages.created_time) FROM Event_Messages WHERE Event_Messages.event_id = Events.id ORDER BY Event_Messages.created_time DESC LIMIT 1) AS last_message FROM Events WHERE Events.owner_id = ? OR Events.id IN (SELECT Event_Invites.event_id FROM Event_Invites WHERE Event_Invites.guest_id = ?) ORDER BY Events.created_time DESC";
