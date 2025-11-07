@@ -66,12 +66,12 @@ public class NotificationFlow {
 
         // Fetch unread notifications
         List<MapResponse> unreadList = Handler.findAll(
-                "Select Notifications.*, Notification_Types.Type, Users.Name From Notifications Join Notification_Types On Notification_Types.Id = Notifications.Notification_Type_Id Join Users On Users.Id = Notifications.Sender_Id Where Notifications.Receiver_Id = ? And Notifications.Is_Read = ? Order By Notifications.Time DESC",
+                "Select Notifications.*, Notification_Types.Type, Users.Name, Users.Profile_Pic From Notifications Join Notification_Types On Notification_Types.Id = Notifications.Notification_Type_Id Left Join Users On Users.Id = Notifications.Sender_Id Where Notifications.Receiver_Id = ? And Notifications.Is_Read = ? Order By Notifications.Time DESC",
                 userId, false);
 
         // Fetch read notifications
         List<MapResponse> readList = Handler.findAll(
-                "Select Notifications.*, Notification_Types.Type, Users.Name From Notifications Join Notification_Types On Notification_Types.Id = Notifications.Notification_Type_Id Join Users On Users.Id = Notifications.Sender_Id Where Notifications.Receiver_Id = ? And Notifications.Is_Read = ? Order By Notifications.Time DESC",
+                "Select Notifications.*, Notification_Types.Type, Users.Name, Users.Profile_Pic From Notifications Join Notification_Types On Notification_Types.Id = Notifications.Notification_Type_Id Left Join Users On Users.Id = Notifications.Sender_Id Where Notifications.Receiver_Id = ? And Notifications.Is_Read = ? Order By Notifications.Time DESC",
                 userId, true);
 
         int unreadCount = unreadList.size();

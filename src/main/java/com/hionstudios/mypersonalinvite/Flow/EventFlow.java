@@ -727,9 +727,8 @@ public class EventFlow {
                             // Find the event details
                             Event event = Event.findById(id);
                             if (event != null) {
-                                // Get event owner info
-                                Long ownerId = event.getLong("owner_id");
-                                GoogleOauth ownerOauth = GoogleOauth.findFirst("user_id = ?", ownerId);
+
+                                GoogleOauth ownerOauth = GoogleOauth.findFirst("user_id = ?", user.getLong("id"));
 
                                 if (ownerOauth != null) {
                                     // Build credential for owner
@@ -742,23 +741,41 @@ public class EventFlow {
                                     try {
                                         Long secs = credential.getExpiresInSeconds();
                                         if (secs == null || secs <= 60) {
-                                            credential.refreshToken();
+                                            System.out.println("Access token expired or near expiry. Refreshing...");
+                                        } else {
+                                            System.out.println("Access token still valid for " + secs
+                                                    + "s, but forcing refresh just in case...");
+                                        }
+
+                                        boolean refreshed = credential.refreshToken();
+                                        System.out.println("Token refresh attempted, result: " + refreshed);
+
+                                        if (refreshed) {
                                             ownerOauth.set("access_token", credential.getAccessToken())
                                                     .set("refresh_token", credential.getRefreshToken())
                                                     .set("expiry", credential.getExpirationTimeMilliseconds())
                                                     .saveIt();
+                                        } else {
+                                            System.err.println(
+                                                    "Refresh token invalid — user must reconnect Google account.");
                                         }
                                     } catch (Exception e) {
-                                        System.err.println("Token refresh failed for owner: " + e.getMessage());
+                                        System.err.println("Error refreshing token: " + e.getMessage());
                                     }
-
                                     // Create Google Calendar event for this guest
                                     try {
-                                        String eventTitle = event.getString("event_name");
+                                        String eventTitle = event.getString("title");
                                         String eventDescription = "You’ve been invited to the event: " + eventTitle;
-                                        String startTime = event.getString("start_time"); // ensure ISO 8601 format
-                                        String endTime = event.getString("end_time"); // ensure ISO 8601 format
+                                        long start_time = event.getLong("start_time"); // e.g., 64800000 (6 PM)
+                                        long end_time = event.getLong("end_time"); // e.g., 75600000 (9 PM)
+                                        long date = event.getLong("date"); // e.g., 1762605164000
 
+                                        // Convert to RFC3339 correctly
+                                        String startTime = TimeUtil.toRFC3339FromDateAndTime(date, start_time);
+                                        String endTime = TimeUtil.toRFC3339FromDateAndTime(date, end_time);
+
+                                        System.out.println("Start Time (RFC3339): " + startTime);
+                                        System.out.println("End Time (RFC3339): " + endTime);
                                         googleService.createCalendarEvent(
                                                 credential,
                                                 eventTitle,

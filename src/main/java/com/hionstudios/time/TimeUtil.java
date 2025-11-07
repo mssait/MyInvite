@@ -1,5 +1,6 @@
 package com.hionstudios.time;
 
+import java.time.Instant;
 import java.util.Calendar;
 import java.util.TimeZone;
 
@@ -62,4 +63,28 @@ public interface TimeUtil {
     static long parseDate(String date) {
         return parse(date, "dd-MM-yyyy");
     }
+
+    // Combine a date (epoch millis for any time that day) and millisSinceMidnight
+    public static String toRFC3339FromDateAndTime(long dateEpoch, long millisOfDay) {
+        // Normalize the date to midnight first
+        long midnightMillis = normalizeToMidnight(dateEpoch);
+
+        // Add the time offset within that day
+        long totalMillis = midnightMillis + millisOfDay;
+
+        return Instant.ofEpochMilli(totalMillis)
+                .atZone(TIMEZONE.toZoneId())
+                .toLocalDateTime()
+                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
+    }
+
+    static long normalizeToMidnight(long epochMillis) {
+        return Instant.ofEpochMilli(epochMillis)
+                .atZone(TIMEZONE.toZoneId())
+                .toLocalDate()
+                .atStartOfDay(TIMEZONE.toZoneId())
+                .toInstant()
+                .toEpochMilli();
+    }
+
 }

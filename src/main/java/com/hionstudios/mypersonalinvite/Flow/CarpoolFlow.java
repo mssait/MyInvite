@@ -99,9 +99,9 @@ public class CarpoolFlow {
         return new MapResponse().put("requests", requests);
     }
 
-    public MapResponse putCarpool(Long id, String car_model, String car_number, String car_color,
-            int available_seats, boolean ladies_accompanied, String start_latitude_location,
-            String start_longitude_location, String start_date_time,
+    public MapResponse putCarpool(Long id, String car_model, String car_number, String car_color, String address,
+            int available_seats, boolean ladies_accompanied, double start_latitude_location,
+            double start_longitude_location, String start_date_time,
             String end_date_time, String notes) {
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -115,6 +115,7 @@ public class CarpoolFlow {
         carpool.set("car_model", car_model);
         carpool.set("car_color", car_color);
         carpool.set("car_number", car_number);
+        carpool.set("address", address);
         carpool.set("available_seat", available_seats);
         carpool.set("ladies_accompanied", ladies_accompanied);
         carpool.set("start_location_latitude", start_latitude_location);

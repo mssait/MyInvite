@@ -4,6 +4,7 @@ import com.google.api.client.auth.oauth2.BearerToken;
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.JsonFactory;
@@ -18,6 +19,7 @@ import com.google.api.services.calendar.model.EventDateTime;
 import org.springframework.stereotype.Service;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
@@ -28,7 +30,7 @@ import java.util.stream.Collectors;
 @Service
 public class GoogleOauthService {
         private static final String CREDENTIALS_FILE_PATH = "googleOauth.json";
-        private static final String REDIRECT_URI = "http://localhost:8080/google/oauth2/callback";
+        private static final String REDIRECT_URI = "http://localhost:8080/oauth2/callback";
         private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
 
         private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
@@ -72,6 +74,8 @@ public class GoogleOauthService {
                 return flow.newAuthorizationUrl()
                                 .setRedirectUri(REDIRECT_URI)
                                 .setState(userId)
+                                .setAccessType("offline")
+                                .set("prompt", "consent")
                                 .build();
         }
 
@@ -92,6 +96,11 @@ public class GoogleOauthService {
                                 GoogleNetHttpTransport.newTrustedTransport(),
                                 JacksonFactory.getDefaultInstance(),
                                 credential).setApplicationName("My Invite").build();
+
+                String calendarId = "primary";
+                com.google.api.services.calendar.model.Calendar calendar = service.calendars().get(calendarId)
+                                .execute();
+                System.out.println("Authorized as: " + calendar.getSummary());
 
                 // Create event attendees
                 List<EventAttendee> attendees = null;
@@ -128,12 +137,26 @@ public class GoogleOauthService {
                                 (credential.getRefreshToken() != null || !credential.getExpiresInSeconds().equals(0L));
         }
 
-        public Credential buildCredentialFromTokens(String accessToken, String refreshToken, Long expiryMillis) {
-                Credential credential = new Credential(BearerToken.authorizationHeaderAccessMethod())
-                        .setAccessToken(accessToken)
-                        .setRefreshToken(refreshToken)
-                        .setExpirationTimeMilliseconds(expiryMillis);
-                // Removed unnecessary setTransport call as it is not defined for Credential
-                return credential;
-            }
+        public Credential buildCredentialFromTokens(String accessToken, String refreshToken, Long expiry)
+                        throws IOException, GeneralSecurityException {
+
+                // Load client secrets from resources
+                InputStream in = getClass().getResourceAsStream("/googleOauth.json");
+                if (in == null) {
+                        throw new IOException("Resource not found: /googleOauth.json");
+                }
+
+                GoogleClientSecrets clientSecrets = GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
+
+                // Build credential using GoogleCredential
+                return new GoogleCredential.Builder()
+                                .setTransport(GoogleNetHttpTransport.newTrustedTransport())
+                                .setJsonFactory(JSON_FACTORY)
+                                .setClientSecrets(clientSecrets)
+                                .build()
+                                .setAccessToken(accessToken)
+                                .setRefreshToken(refreshToken)
+                                .setExpirationTimeMilliseconds(expiry);
+        }
+
 }

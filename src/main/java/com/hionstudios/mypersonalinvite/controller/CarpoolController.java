@@ -78,14 +78,15 @@ public class CarpoolController {
             @RequestParam(required = false) String car_model,
             @RequestParam(required = false) String car_number,
             @RequestParam(required = false) String car_color,
+            @RequestParam(required = false) String address,
             @RequestParam(required = false) int available_seats,
             @RequestParam(required = false) boolean ladies_accompanied,
-            @RequestParam(required = false) String start_latitude_location,
-            @RequestParam(required = false) String start_longitude_location,
+            @RequestParam(required = false) double start_latitude_location,
+            @RequestParam(required = false) double start_longitude_location,
             @RequestParam(required = false) String start_date_time,
             @RequestParam(required = false) String end_date_time,
             @RequestParam(required = false) String notes) {
-        return ((DbTransaction) () -> carpoolFlow.putCarpool(id, car_model, car_number, car_color,
+        return ((DbTransaction) () -> carpoolFlow.putCarpool(id, car_model, car_number, car_color, address,
                 available_seats, ladies_accompanied, start_latitude_location, start_longitude_location, start_date_time, end_date_time, notes)).write();
 
     }
