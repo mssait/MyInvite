@@ -106,4 +106,24 @@ public class NotificationFlow {
                 .put("updated_count", unreadNotifications.size());
     }
 
+    public MapResponse markAsRead(long id) {
+        Long userId = UserUtil.getUserid();
+        if (userId == null || userId <= 0)
+            return MapResponse.failure("User not authenticated");
+
+        Notification notification = Notification.findById(id);
+        if (notification == null || !notification.getLong("receiver_id").equals(userId)) {
+            return MapResponse.failure("Notification not found or access denied");
+        }
+
+        notification.set("is_read", true);
+        boolean saved = notification.saveIt();
+
+        if (saved) {
+            return MapResponse.success("Notification marked as read");
+        } else {
+            return MapResponse.failure("Failed to update notification");
+        }
+    }
+
 }

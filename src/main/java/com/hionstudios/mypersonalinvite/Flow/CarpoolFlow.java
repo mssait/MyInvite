@@ -20,6 +20,7 @@ import com.hionstudios.mypersonalinvite.model.Notification;
 import com.hionstudios.mypersonalinvite.model.NotificationType;
 import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.time.TimeUtil;
+
 @Service
 public class CarpoolFlow {
 
@@ -159,37 +160,37 @@ public class CarpoolFlow {
                 notification.set("notification_type_id", NotificationType.getId(NotificationType.CARPOOL));
                 notification.set("content", "You have a new carpool request from " + senderName);
                 notification.set("is_read", false);
-                notification.set("href", "/events/" + eventId + "/carpools/" + id);
+                notification.set("href", "/carpool-respond/" + eventId + "/" + id);
                 notification.insert();
 
                 try {
-                List<FcmDeviceToken> tokens = FcmDeviceToken.where(
-                    "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
-                    ownerId
-                );
+                    List<FcmDeviceToken> tokens = FcmDeviceToken.where(
+                            "user_id = ? AND fcm_token IS NOT NULL AND fcm_token <> ''",
+                            ownerId);
 
-                if (tokens != null && !tokens.isEmpty()) {
-                    final String notifTitle = "New Carpool Request";
-                    final String notifBody = senderName + " requested to join your carpool.";
-                    final String route = "/events/" + eventId + "/carpools/" + id;
+                    if (tokens != null && !tokens.isEmpty()) {
+                        final String notifTitle = "New Carpool Request";
+                        final String notifBody = senderName + " requested to join your carpool.";
+                        final String route = "/events/" + eventId + "/carpools/" + id;
 
-                    for (FcmDeviceToken t : tokens) {
-                        final String fcmToken = t.getString("fcm_token");
+                        for (FcmDeviceToken t : tokens) {
+                            final String fcmToken = t.getString("fcm_token");
 
-                        try {
-                            // send with routing path
-                            firebaseNotificationService.sendNotification(fcmToken, notifTitle, notifBody);
-                            // if you want to include a route, extend your sendNotification to accept data map
-                        } catch (Exception ex) {
-                            System.err.println("FCM send failed for token " + fcmToken + ": " + ex.getMessage());
+                            try {
+                                // send with routing path
+                                firebaseNotificationService.sendNotification(fcmToken, notifTitle, notifBody);
+                                // if you want to include a route, extend your sendNotification to accept data
+                                // map
+                            } catch (Exception ex) {
+                                System.err.println("FCM send failed for token " + fcmToken + ": " + ex.getMessage());
+                            }
                         }
+                    } else {
+                        System.out.println("No FCM tokens for user " + ownerId + "; skipping push.");
                     }
-                } else {
-                    System.out.println("No FCM tokens for user " + ownerId + "; skipping push.");
+                } catch (Exception e) {
+                    System.err.println("Push notification error: " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("Push notification error: " + e.getMessage());
-            }
             }
         }
 
@@ -224,8 +225,11 @@ public class CarpoolFlow {
         int filled_seats = carpool.getInteger("filled_seats");
         int noOfPeople = request.getInteger("no_of_people");
         int currentSeats = available_seats - filled_seats;
-        if (currentSeats >= noOfPeople) {
-            if (response) {
+        long user_id = UserUtil.getUserid();
+        Long requestedId = request.getLong("guest_id");
+        Long eventId = carpool.getLong("event_id");
+        if (response) {
+            if (currentSeats >= noOfPeople) {
                 request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.ACCEPTED));
                 CarpoolGuest guest = new CarpoolGuest();
                 guest.set("carpool_id", request.getLong("carpool_id"));
@@ -235,9 +239,7 @@ public class CarpoolFlow {
 
                 carpool.set("filled_seats", filled_seats + noOfPeople);
                 boolean isInserted = carpool.saveIt();
-                Long user_id = UserUtil.getUserid();
-                Long requestedId = request.getLong("guest_id");
-                Long eventId = carpool.getLong("event_id");
+
                 if (isInserted) {
                     Notification notification = new Notification();
                     notification.set("sender_id", user_id);
@@ -246,19 +248,30 @@ public class CarpoolFlow {
                     notification.set("notification_type_id", NotificationType.getId(NotificationType.CARPOOL));
                     notification.set("content", "Your carpool request has been accepted");
                     notification.set("is_read", false);
-                    notification.set("href", "/events/" + eventId + "/carpools/" + id);
+                    notification.set("href", "/carpool-request");
                     notification.insert();
                 }
-
             } else {
-                request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.REJECTED));
+                return MapResponse.failure("Not enough seats available");
             }
+
         } else {
-            return MapResponse.failure("Not enough seats available");
+            request.set("carpool_guest_status_id", CarpoolGuestStatus.getId(CarpoolGuestStatus.REJECTED));
+            boolean isSaved = request.saveIt();
+            if (isSaved) {
+                Notification notification = new Notification();
+                notification.set("sender_id", user_id);
+                notification.set("receiver_id", requestedId);
+                notification.set("event_id", eventId);
+                notification.set("notification_type_id", NotificationType.getId(NotificationType.CARPOOL));
+                notification.set("content", "Your carpool request has been rejected");
+                notification.set("is_read", false);
+                notification.set("href", "/carpool-request");
+                notification.insert();
+            }
+
         }
-
-        return request.saveIt() ? MapResponse.success() : MapResponse.failure("Failed to respond to carpool request");
-
+        return MapResponse.success();
     }
 
     public MapResponse viewCarpool(Long id) {

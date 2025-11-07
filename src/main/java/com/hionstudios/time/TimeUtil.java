@@ -66,16 +66,17 @@ public interface TimeUtil {
 
     // Combine a date (epoch millis for any time that day) and millisSinceMidnight
     public static String toRFC3339FromDateAndTime(long dateEpoch, long millisOfDay) {
-        // Normalize the date to midnight first
-        long midnightMillis = normalizeToMidnight(dateEpoch);
-
-        // Add the time offset within that day
-        long totalMillis = midnightMillis + millisOfDay;
-
-        return Instant.ofEpochMilli(totalMillis)
+        // Normalize to midnight (00:00 of that day)
+        java.time.ZonedDateTime midnight = Instant.ofEpochMilli(dateEpoch)
                 .atZone(TIMEZONE.toZoneId())
-                .toLocalDateTime()
-                .format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX"));
+                .toLocalDate()
+                .atStartOfDay(TIMEZONE.toZoneId());
+
+        // Add the time offset of the day
+        java.time.ZonedDateTime zonedDateTime = midnight.plusNanos(millisOfDay * 1_000_000L);
+
+        // Return proper RFC3339 formatted timestamp
+        return zonedDateTime.format(java.time.format.DateTimeFormatter.ISO_OFFSET_DATE_TIME);
     }
 
     static long normalizeToMidnight(long epochMillis) {

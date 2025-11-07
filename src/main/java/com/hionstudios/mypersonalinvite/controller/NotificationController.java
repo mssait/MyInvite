@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -83,6 +84,12 @@ public class NotificationController {
     @IsUser
     public ResponseEntity<MapResponse> markAllAsRead() {
         return ((DbTransaction) () -> new NotificationFlow().markAllAsRead()).write();
+    }
+
+    @PutMapping("{id}/mark-read")
+    @IsUser
+    public ResponseEntity<MapResponse> markAsRead(@PathVariable long id) {
+        return ((DbTransaction) () -> new NotificationFlow().markAsRead(id)).write();
     }
 
 }

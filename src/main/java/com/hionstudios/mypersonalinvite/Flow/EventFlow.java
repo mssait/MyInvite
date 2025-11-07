@@ -58,13 +58,13 @@ public class EventFlow {
     public MapResponse getUpcomingEvents() {
         long now = System.currentTimeMillis();
         String sql = "Select Events.Id, Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Longitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date >= ? Order By Events.Date Asc";
-        return Handler.eventtoDataGrid(sql, now);
+        return Handler.eventToDataGrid(sql, now);
     }
 
     public MapResponse getCompletedEvents() {
         long now = System.currentTimeMillis();
         String sql = "Select Events.Id, Events.Title, Events.Date, Events.Location_Latitude, Events.Location_Longitude, Event_Types.Type, Users.Name From Events Join Event_Types On Events.Event_Type_Id = Event_Types.Id Join Users On Events.Owner_Id = Users.Id Where Events.Date <= ? Order By Events.Date Desc";
-        return Handler.eventtoDataGrid(sql, now);
+        return Handler.eventToDataGrid(sql, now);
     }
 
     public MapResponse getEventDetails(Long id) {
@@ -112,11 +112,14 @@ public class EventFlow {
     public MapResponse addEvent(int event_type_id, String title, String description, int no_of_guest, String date,
             String start_time, String end_time, String address, String gift_suggestion, double location_latitude,
             double location_longitude, MultipartFile[] thumbnail) {
-        Long userId = UserUtil.getUserid();
 
-        if (userId == null || userId <= 0) {
-            return MapResponse.failure("User not authenticated");
-        }
+        long userId = 13;
+
+        // Long userId = UserUtil.getUserid();
+
+        // if (userId == null || userId <= 0) {
+        // return MapResponse.failure("User not authenticated");
+        // }
 
         Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
 
@@ -152,6 +155,93 @@ public class EventFlow {
                 event_thumbnail.insert();
             }
         }
+
+        // Now add the event to Google Calendar
+        try {
+            // Fetch event owner info
+            User user = User.findById(userId);
+            if (user == null) {
+                System.err.println("User not found, skipping Google Calendar integration.");
+                return MapResponse.success("Event added but calendar sync skipped (user missing).");
+            }
+
+            String guestEmail = user.getString("email");
+            if (guestEmail == null || guestEmail.isEmpty()) {
+                System.out.println("Guest has no email, skipping Google Calendar invite.");
+                return MapResponse.success("Event added but no email found for calendar invite.");
+            }
+
+            // Find owner's Google OAuth credentials
+            GoogleOauth ownerOauth = GoogleOauth.findFirst("user_id = ?", user.getLong("id"));
+            if (ownerOauth == null) {
+                System.out.println("Event owner has not connected Google Calendar, skipping invite.");
+                return MapResponse.success("Event added but Google Calendar not connected.");
+            }
+
+            // Build credential
+            Credential credential = googleService.buildCredentialFromTokens(
+                    ownerOauth.getString("access_token"),
+                    ownerOauth.getString("refresh_token"),
+                    ownerOauth.getLong("expiry"));
+
+            // Refresh token if needed
+            try {
+                Long secs = credential.getExpiresInSeconds();
+                if (secs == null || secs <= 60) {
+                    System.out.println("Access token expired or near expiry. Refreshing...");
+                } else {
+                    System.out
+                            .println("Access token still valid for " + secs + "s, but forcing refresh just in case...");
+                }
+
+                boolean refreshed = credential.refreshToken();
+                System.out.println("Token refresh attempted, result: " + refreshed);
+
+                if (refreshed) {
+                    ownerOauth.set("access_token", credential.getAccessToken())
+                            .set("refresh_token", credential.getRefreshToken())
+                            .set("expiry", credential.getExpirationTimeMilliseconds())
+                            .saveIt();
+                } else {
+                    System.err.println("Refresh token invalid — user must reconnect Google account.");
+                }
+            } catch (Exception e) {
+                System.err.println("Error refreshing token: " + e.getMessage());
+            }
+
+            // Create Google Calendar Event
+            try {
+                String eventTitle = event.getString("title");
+                String eventDescription = "Get ready for your Event: " + eventTitle;
+
+                long start_time_val = event.getLong("start_time");
+                long end_time_val = event.getLong("end_time");
+                long date_val = event.getLong("date");
+
+                String startTime = TimeUtil.toRFC3339FromDateAndTime(date_val, start_time_val);
+                String endTime = TimeUtil.toRFC3339FromDateAndTime(date_val, end_time_val);
+
+                System.out.println("Start Time (RFC3339): " + startTime);
+                System.out.println("End Time (RFC3339): " + endTime);
+
+                googleService.createCalendarEvent(
+                        credential,
+                        eventTitle,
+                        eventDescription,
+                        startTime,
+                        endTime,
+                        List.of(guestEmail));
+
+                System.out.println("Google Calendar invite sent to " + guestEmail);
+            } catch (Exception ex) {
+                System.err.println(
+                        "Failed to create Google Calendar event for guest " + guestEmail + ": " + ex.getMessage());
+            }
+
+        } catch (Exception e) {
+            System.err.println("Error adding Google Calendar invite: " + e.getMessage());
+        }
+
         return MapResponse.success();
     }
 
@@ -309,12 +399,22 @@ public class EventFlow {
         if (userId == null || userId <= 0)
             return MapResponse.failure("User not authenticated");
 
-        String sql_1 = "Select Events.*, COALESCE(json_agg(Distinct json_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct json_build_object('amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? Group By Events.Id Order By Events.Date Desc";
+        String sql_1 = "Select Events.*, COALESCE(jsonb_agg(Distinct jsonb_build_object('image', Event_Thumbnails.image)) Filter (Where Event_Thumbnails.Id Is Not Null), '[]') As Thumbnails, COALESCE(Json_agg(Distinct jsonb_build_object('amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) Filter (Where Event_Budgets.Id Is Not Null), '[]') As Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? Group By Events.Id Order By Events.Date Desc";
 
-        List<MapResponse> events = Handler.findAll(sql_1, userId);
+        String sql_2 = "Select Events.*, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('image', Event_Thumbnails.image)) FILTER (WHERE Event_Thumbnails.Id IS NOT NULL), '[]') AS Thumbnails, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('Planned_amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) FILTER (WHERE Event_Budgets.Id IS NOT NULL), '[]') AS Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date > ? Group By Events.Id Order By Events.Date Desc";
 
-        MapResponse response = new MapResponse().put("OwnersEvents", events);
-        return response;
+        String sql_3 = "Select Events.*, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('image', Event_Thumbnails.image)) FILTER (WHERE Event_Thumbnails.Id IS NOT NULL), '[]') AS Thumbnails, COALESCE(jsonb_agg(DISTINCT jsonb_build_object('Planned_amount', Event_Budgets.Planned_Amount, 'Actual_Amount', Event_Budgets.Actual_Amount, 'budget_type', Budget_Types.Type)) FILTER (WHERE Event_Budgets.Id IS NOT NULL), '[]') AS Budgets From Events Left Join Event_Thumbnails On Events.Id = Event_Thumbnails.Event_Id Left Join Event_Budgets On Events.Id = Event_Budgets.Event_Id Left Join Budget_Types On Event_Budgets.Budget_Type_Id = Budget_Types.Id Where Events.Owner_Id = ? And Events.Date < ? Group By Events.Id Order By Events.Date Desc";
+
+        List<MapResponse> allEvents = Handler.findAll(sql_1, userId);
+
+        long currentTime = TimeUtil.currentTime();
+        List<MapResponse> upcomingEvents = Handler.findAll(sql_2, userId, currentTime);
+        List<MapResponse> completedEvents = Handler.findAll(sql_3, userId, currentTime);
+
+        return new MapResponse()
+                .put("allEvents", allEvents)
+                .put("upcomingEvents", upcomingEvents)
+                .put("completedEvents", completedEvents);
     }
 
     public MapResponse deleteEvent(Long id) {
@@ -463,7 +563,7 @@ public class EventFlow {
             notification.set("notification_type_id", NotificationType.getId(NotificationType.RSVP));
             notification.set("content", name + " " + "responded to your invite");
             notification.set("is_read", false);
-            notification.set("href", "/events/" + id + "/event/" + id);
+            notification.set("href", "/rsvp-tracking");
             notification.insert();
 
             if (event != null) {
@@ -661,6 +761,19 @@ public class EventFlow {
                             // Guardrail to prevent push issues from breaking the main flow
                             System.err.println("Push notification error: " + e.getMessage());
                         }
+
+                        Event event = new Event();
+                        String title = event.getString("title");
+
+                        Notification notification = new Notification();
+                        notification.set("sender_id", userId);
+                        notification.set("receiver_id", user.getId());
+                        notification.set("event_id", id);
+                        notification.set("notification_type_id", NotificationType.getId(NotificationType.EVENT));
+                        notification.set("content", "You are invited to this event." + title);
+                        notification.set("is_read", false);
+                        notification.set("href", "/user-event-details/" + id);
+                        notification.insert();
                         added++;
                         continue;
                     }
@@ -802,6 +915,19 @@ public class EventFlow {
                     } catch (Exception e) {
                         System.err.println("Error adding Google Calendar invite: " + e.getMessage());
                     }
+
+                    Event event = Event.findById(id);
+                    String title = event.getString("title");
+
+                    Notification notification = new Notification();
+                    notification.set("sender_id", userId);
+                    notification.set("receiver_id", user.getId());
+                    notification.set("event_id", id);
+                    notification.set("notification_type_id", NotificationType.getId(NotificationType.EVENT));
+                    notification.set("content", "You are invited to this event:" + title);
+                    notification.set("is_read", false);
+                    notification.set("href", "/user-event-details/" + id);
+                    notification.insert();
                     added++;
                 } else {
                     // Unregistered user: Create invite with GUEST_ID = null

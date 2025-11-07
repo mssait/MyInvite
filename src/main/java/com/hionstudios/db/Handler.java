@@ -346,7 +346,7 @@ public interface Handler {
         }
     }
 
-    static MapResponse eventtoDataGrid(String sql, Object... params) {
+    static MapResponse eventToDataGrid(String sql, Object... params) {
         List<Object> rows = new ArrayList<>();
         MapResponse response;
         try {
