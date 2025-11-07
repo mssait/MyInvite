@@ -12,15 +12,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfo;
 import com.google.api.client.auth.oauth2.Credential;
 import com.hionstudios.MapResponse;
 import com.hionstudios.db.DbUtil;
 import com.hionstudios.mypersonalinvite.model.GoogleOauth;
+import com.hionstudios.mypersonalinvite.model.User;
 import com.hionstudios.oauth.GoogleOauthService;
 
 @RestController
-@RequestMapping("/google")
+@RequestMapping
 public class GoogleAuthController {
 
     private final GoogleOauthService googleService;
@@ -31,7 +33,7 @@ public class GoogleAuthController {
     }
 
     /** Step 1: Redirect user to Google for authentication */
-    @GetMapping("/authorize/{userId}")
+    @GetMapping("/google/authorize/{userId}")
     public void authorize(@PathVariable String userId, HttpServletResponse response) throws Exception {
         String url = googleService.getAuthorizationUrl(userId);
         response.sendRedirect(url);
@@ -42,39 +44,63 @@ public class GoogleAuthController {
     public ResponseEntity<MapResponse> oauthCallback(@RequestParam("code") String code,
             @RequestParam("state") String userId) throws Exception {
 
-        Credential credential = googleService.getCredentialsFromCode(code, userId);
-
         try {
-        DbUtil.openTransaction();
-        
-        Long user_Id = Long.parseLong(userId);
-        GoogleOauth oauth = GoogleOauth.findFirst("user_id = ?", user_Id);
-        
-        // Store or update access + refresh tokens in DB
-        if (oauth == null) {
-            oauth = new GoogleOauth()
-                    .set("user_id", user_Id)
-                    .set("access_token", credential.getAccessToken())
-                    .set("refresh_token", credential.getRefreshToken())
-                    .set("expiry", credential.getExpirationTimeMilliseconds());
-            oauth.insert();
-        } else {
-            oauth.set("access_token", credential.getAccessToken())
-                    .set("refresh_token", credential.getRefreshToken())
-                    .set("expiry", credential.getExpirationTimeMilliseconds())
-                    .saveIt();
+            DbUtil.openTransaction();
+
+            Long user_Id = Long.parseLong(userId);
+
+            Credential credential = googleService.getCredentialsFromCode(code, userId);
+            if (credential == null || credential.getAccessToken() == null) {
+                throw new RuntimeException("Failed to retrieve valid Google credentials");
+            }
+
+            Oauth2 oauth2 = new Oauth2.Builder(
+                    googleService.getHttpTransport(),
+                    googleService.getJsonFactory(),
+                    credential)
+                    .setApplicationName("My Invite")
+                    .build();
+
+            // CORRECTED: This will now work with the right import
+            Userinfo userInfo = oauth2.userinfo().get()
+                    .setOauthToken(credential.getAccessToken())
+                    .execute();
+
+            String googleEmail = userInfo.getEmail();
+            System.out.println("Connected Google email: " + googleEmail);
+
+            User user = User.findById(user_Id);
+            if (user != null) {
+                user.set("email", googleEmail);
+                user.saveIt();
+            }
+
+            GoogleOauth oauth = GoogleOauth.findFirst("user_id = ?", user_Id);
+            // Store or update access + refresh tokens in DB
+            if (oauth == null) {
+                oauth = new GoogleOauth()
+                        .set("user_id", user_Id)
+                        .set("access_token", credential.getAccessToken())
+                        .set("refresh_token", credential.getRefreshToken())
+                        .set("expiry", credential.getExpirationTimeMilliseconds());
+                oauth.insert();
+            } else {
+                oauth.set("access_token", credential.getAccessToken())
+                        .set("refresh_token", credential.getRefreshToken())
+                        .set("expiry", credential.getExpirationTimeMilliseconds())
+                        .saveIt();
+            }
+
+            DbUtil.commitTransaction();
+            return ResponseEntity.ok(MapResponse.success("Google Calendar access granted for user: " + userId));
+
+        } catch (Exception e) {
+            DbUtil.rollback();
+            e.printStackTrace();
+            return ResponseEntity.ok(MapResponse.failure(e.getMessage()));
+        } finally {
+            DbUtil.close();
         }
-        
-        DbUtil.commitTransaction();
-        return ResponseEntity.ok(MapResponse.success("Google Calendar access granted for user: " + userId));
-        
-    } catch (Exception e) {
-        DbUtil.rollback();
-        e.printStackTrace();
-        return ResponseEntity.ok(MapResponse.failure(e.getMessage()));
-    } finally {
-        DbUtil.close();
-    }
     }
 
     /** Step 3: Create event (example call) */

@@ -171,7 +171,7 @@ public class CarpoolFlow {
                     if (tokens != null && !tokens.isEmpty()) {
                         final String notifTitle = "New Carpool Request";
                         final String notifBody = senderName + " requested to join your carpool.";
-                        final String route = "/events/" + eventId + "/carpools/" + id;
+                        // final String route = "/events/" + eventId + "/carpools/" + id;
 
                         for (FcmDeviceToken t : tokens) {
                             final String fcmToken = t.getString("fcm_token");

@@ -7,6 +7,7 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
 import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
+import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.MemoryDataStoreFactory;
@@ -15,6 +16,8 @@ import com.google.api.services.calendar.CalendarScopes;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventAttendee;
 import com.google.api.services.calendar.model.EventDateTime;
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfo;
 
 import org.springframework.stereotype.Service;
 
@@ -23,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +35,11 @@ import java.util.stream.Collectors;
 public class GoogleOauthService {
         private static final String CREDENTIALS_FILE_PATH = "googleOauth.json";
         private static final String REDIRECT_URI = "http://localhost:8080/oauth2/callback";
-        private static final List<String> SCOPES = Collections.singletonList(CalendarScopes.CALENDAR);
+
+        private static final List<String> SCOPES = Arrays.asList(
+                        CalendarScopes.CALENDAR,
+                        "https://www.googleapis.com/auth/userinfo.email",
+                        "https://www.googleapis.com/auth/userinfo.profile");
 
         private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
         private static final com.google.api.client.http.HttpTransport HTTP_TRANSPORT;
@@ -67,6 +75,14 @@ public class GoogleOauthService {
                                 .setDataStoreFactory(MemoryDataStoreFactory.getDefaultInstance())
                                 .setAccessType("offline")
                                 .build();
+        }
+
+        public HttpTransport getHttpTransport() {
+                return HTTP_TRANSPORT;
+        }
+
+        public JsonFactory getJsonFactory() {
+                return JSON_FACTORY;
         }
 
         /** Step 1: Generate Google OAuth Consent URL */
@@ -123,6 +139,16 @@ public class GoogleOauthService {
                 }
 
                 service.events().insert("primary", event).execute();
+        }
+
+        /** Step 4: Get Google User Info (email, name, etc.) */
+        public Userinfo getGoogleUserInfo(Credential credential) throws IOException {
+                Oauth2 oauth2 = new Oauth2.Builder(HTTP_TRANSPORT, JSON_FACTORY, credential)
+                                .setApplicationName("My Invite")
+                                .build();
+
+                // ✅ This call will now succeed (no 401) since proper scopes are granted
+                return oauth2.userinfo().get().execute();
         }
 
         /** Additional method: Get stored credentials for a user */

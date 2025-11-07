@@ -739,8 +739,8 @@ public class EventFlow {
                             if (tokens != null && !tokens.isEmpty()) {
                                 // Minimal title/body; keep short to avoid OS truncation
                                 // String eventPath =
-                                final String notifTitle = "You've been invited to an event";
-                                final String notifBody = "Tap to view details: " + eventLink;
+                                final String notifTitle = "New Event Invite";
+                                final String notifBody = "You've been invited to an event: " + eventLink;
 
                                 for (FcmDeviceToken t : tokens) {
                                     final String fcmToken = t.getString("fcm_token");
@@ -809,8 +809,8 @@ public class EventFlow {
                         if (tokens != null && !tokens.isEmpty()) {
                             // Minimal title/body; keep short to avoid OS truncation
                             // String eventPath =
-                            final String notifTitle = "You've been invited to an event";
-                            final String notifBody = "Tap to view details: " + eventLink;
+                            final String notifTitle = "New Event Invite";
+                            final String notifBody = "You've been invited to an event: " + eventLink;
 
                             for (FcmDeviceToken t : tokens) {
                                 final String fcmToken = t.getString("fcm_token");
