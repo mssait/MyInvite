@@ -204,7 +204,7 @@ const AttendanceButtons = ({ status, onStatusChange, loading }) => {
                     sx={{
                         bgcolor: "#4CAF50",
                         color: "white",
-                        borderRadius: 0,
+                        borderRadius: 0.5,
                         "&:hover": { bgcolor: "#388E3C" },
                     }}
                     onClick={openPlayStore}
@@ -223,7 +223,7 @@ const AttendanceButtons = ({ status, onStatusChange, loading }) => {
                     sx={{
                         borderColor: "#F44336",
                         color: "#F44336",
-                        borderRadius: 0
+                        borderRadius: 0.5
                     }}
                     onClick={openPlayStore}
                 >
@@ -241,7 +241,7 @@ const AttendanceButtons = ({ status, onStatusChange, loading }) => {
                     sx={{
                         borderColor: "#FF9800",
                         color: "#FF9800",
-                        borderRadius: 0
+                        borderRadius: 0.5
                     }}
                     onClick={openPlayStore}
                 >

@@ -56,7 +56,6 @@ public class EventController {
     }
 
     @GetMapping("{id}/details") 
-    @IsAdminAndUser
     @PermitAll
     public ResponseEntity<MapResponse> getEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> eventFlow.getEventDetails(id)).read();
