@@ -89,7 +89,7 @@ public class BasicSecurityConfiguration extends WebSecurityConfigurerAdapter {
         CorsConfiguration cors = new CorsConfiguration();
         cors.setAllowedOrigins(Arrays.asList(
                 "http://localhost:3000",
-                "http://localhost:8080"));
+                "http://localhost:8080","https://products.znifa.com"));
         cors.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE"));
         cors.setAllowCredentials(true);
         cors.addAllowedHeader("*");
