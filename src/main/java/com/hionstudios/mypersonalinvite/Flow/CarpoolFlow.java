@@ -101,8 +101,8 @@ public class CarpoolFlow {
     }
 
     public MapResponse putCarpool(Long id, String car_model, String car_number, String car_color, String address,
-            int available_seats, boolean ladies_accompanied, double start_latitude_location,
-            double start_longitude_location, String start_date_time,
+            int available_seats, boolean ladies_accompanied, Double start_latitude_location,
+            Double start_longitude_location, String start_date_time,
             String end_date_time, String notes) {
 
         DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");

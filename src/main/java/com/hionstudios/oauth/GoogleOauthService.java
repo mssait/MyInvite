@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 public class GoogleOauthService {
         private static final String CREDENTIALS_FILE_PATH = "googleOauth.json";
-        private static final String REDIRECT_URI = "http://localhost:8080/oauth2/callback";
+        private static final String REDIRECT_URI = "https://mypersonalinvite.com/oauth2/callback";
 
         private static final List<String> SCOPES = Arrays.asList(
                         CalendarScopes.CALENDAR,

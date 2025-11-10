@@ -81,8 +81,8 @@ public class CarpoolController {
             @RequestParam(required = false) String address,
             @RequestParam(required = false) int available_seats,
             @RequestParam(required = false) boolean ladies_accompanied,
-            @RequestParam(required = false) double start_latitude_location,
-            @RequestParam(required = false) double start_longitude_location,
+            @RequestParam(required = false) Double start_latitude_location,
+            @RequestParam(required = false) Double start_longitude_location,
             @RequestParam(required = false) String start_date_time,
             @RequestParam(required = false) String end_date_time,
             @RequestParam(required = false) String notes) {
