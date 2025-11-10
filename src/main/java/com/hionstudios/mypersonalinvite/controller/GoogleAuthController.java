@@ -46,9 +46,7 @@ public class GoogleAuthController {
 
         try {
             DbUtil.openTransaction();
-
             Long user_Id = Long.parseLong(userId);
-
             Credential credential = googleService.getCredentialsFromCode(code, userId);
             if (credential == null || credential.getAccessToken() == null) {
                 throw new RuntimeException("Failed to retrieve valid Google credentials");

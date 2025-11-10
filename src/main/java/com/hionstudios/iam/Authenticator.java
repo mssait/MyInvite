@@ -44,6 +44,7 @@ public class Authenticator {
         JwtResponse jwtResponse = construct(userDetails);
         response.addHeader(HttpHeaders.SET_COOKIE, jwtResponse.toCookieHeader());
         MapResponse newResponse = MapResponse.success();
+        newResponse.put("id", userDetails.getUserid());
         newResponse.put("name", userDetails.getName());
         newResponse.put("phone", userDetails.getPhone());
         newResponse.put("email", userDetails.getEmail());

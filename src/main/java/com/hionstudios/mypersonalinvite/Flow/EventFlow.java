@@ -113,13 +113,11 @@ public class EventFlow {
             String start_time, String end_time, String address, String gift_suggestion, double location_latitude,
             double location_longitude, MultipartFile[] thumbnail) {
 
-        long userId = 13;
+        Long userId = UserUtil.getUserid();
 
-        // Long userId = UserUtil.getUserid();
-
-        // if (userId == null || userId <= 0) {
-        // return MapResponse.failure("User not authenticated");
-        // }
+        if (userId == null || userId <= 0) {
+            return MapResponse.failure("User not authenticated");
+        }
 
         Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
 
@@ -250,16 +248,17 @@ public class EventFlow {
             int no_of_guest, String date, String start_time, String end_time,
             String address, String gift_suggestion, double latitude,
             double longitude, List<Object> thumbnail) {
-        // Long userId = UserUtil.getUserid();
-        // if (userId == null || userId <= 0)
-        // return MapResponse.failure("User not authenticated");
+
+        Long userId = UserUtil.getUserid();
+        if (userId == null || userId <= 0)
+            return MapResponse.failure("User not authenticated");
 
         Event event = Event.findById(id);
         if (event == null)
             return MapResponse.failure("Event not found");
 
-        // if (!event.getLong("owner_id").equals(userId))
-        // return MapResponse.failure("Not allowed");
+        if (!event.getLong("owner_id").equals(userId))
+            return MapResponse.failure("Not allowed");
 
         // --- Update event details ---
         Long parsedDate = TimeUtil.parse(date, "yyyy-MM-dd");
@@ -282,8 +281,7 @@ public class EventFlow {
                 .set("gift_suggestion", gift_suggestion)
                 .set("location_latitude", latitude)
                 .set("location_longitude", longitude);
-
-        boolean isSaved = event.saveIt();
+        event.saveIt();
 
         // ✅ Notify guests only if saved
         // if (isSaved) {
@@ -563,7 +561,7 @@ public class EventFlow {
             notification.set("notification_type_id", NotificationType.getId(NotificationType.RSVP));
             notification.set("content", name + " " + "responded to your invite");
             notification.set("is_read", false);
-            notification.set("href", "/rsvp-tracking");
+            notification.set("href", "/rsvp-tracking/" + id);
             notification.insert();
 
             if (event != null) {
@@ -704,6 +702,16 @@ public class EventFlow {
 
                 if (phone == null)
                     continue;
+
+                phone = phone.trim();
+                if (phone.startsWith("+")) {
+                    phone = phone.substring(1); // remove '+'
+                }
+
+                // If the phone number has 12 digits and starts with 91, remove the prefix
+                if (phone.length() == 12 && phone.startsWith("91")) {
+                    phone = phone.substring(2);
+                }
 
                 // Check if user exists
                 User user = null;

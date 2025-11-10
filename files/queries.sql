@@ -40,7 +40,7 @@ VALUES (
      1,
     'Sanjay',
     'sanjay@hionstudios.com', 
-    '7397541499',
+    '7397541498',
     'password',
     'fgh5a5a9fdd661b51450faab7bc3e4056d8cd'
 ),
@@ -48,15 +48,15 @@ VALUES (
      2,
     'Eanok',
     'eanok@hionstudios.com', 
-    '7397541498',
+    '7397541499',
     'password',
     'fgh5a35b55322c6af4c298eda5d437deb5507'
 ),
 ( 
      2,
-    'Ajay',
-    'ajay@hionstudios.com', 
-    '7397541497',
+    'Ganesh',
+    'ganesh@hionstudios.com', 
+    '9092123295',
     'password',
     'fgh5a6bf50ddbc2044702a2a63828df227a6f'
 )
@@ -324,7 +324,7 @@ CREATE TABLE IF NOT EXISTS BACKUPS (
 
 CREATE TABLE IF NOT EXISTS FCM_DEVICE_TOKENS (
     ID BIGSERIAL PRIMARY KEY,
-    USER_ID VARCHAR(100),
+    USER_ID BIGINT REFERENCES USERS(ID),
     FCM_TOKEN TEXT NOT NULL,
     CREATED_TIME BIGINT DEFAULT EXTRACT(EPOCH FROM NOW())*1000
 );

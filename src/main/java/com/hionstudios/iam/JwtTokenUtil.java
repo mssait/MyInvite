@@ -38,7 +38,7 @@ public class JwtTokenUtil implements Serializable {
     }
 
     //for retrieving any information from token we will need the secret key
-    private Claims getAllClaimsFromToken(String token) {
+    public Claims getAllClaimsFromToken(String token) {
         return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
     }
 
@@ -51,6 +51,10 @@ public class JwtTokenUtil implements Serializable {
     //generate token for user
     public String generateToken(UserDetails userDetails) {
         Map<String, Object> claims = new HashMap<>();
+
+        if (userDetails instanceof HionUserDetails) {
+            claims.put("phone", ((HionUserDetails) userDetails).getPhone());
+        }
         return doGenerateToken(claims, userDetails.getUsername());
     }
 

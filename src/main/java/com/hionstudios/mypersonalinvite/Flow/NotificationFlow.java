@@ -39,7 +39,7 @@ public class NotificationFlow {
 
         long id = UserUtil.getUserid();
 
-        String sql = "Select Fcm_Token from Fcm_Tokens Where UserId = ";
+        String sql = "Select * Fcm_Token from Fcm_Tokens Where UserId = ?";
         MapResponse fcmToken = Handler.findFirst(sql, id);
 
         return fcmToken;

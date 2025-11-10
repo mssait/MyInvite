@@ -28,7 +28,7 @@ public class ChatController {
     }
 
     @PostMapping("event/{id}/send")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> sendMessage(
             @PathVariable long id,
             @RequestParam String messageText) {

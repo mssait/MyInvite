@@ -80,4 +80,8 @@ public class UserController {
         return ((DbTransaction) () -> new UserFlow().dashboard()).read();
     }
 
+    @GetMapping("calendar-connection")
+    public ResponseEntity<MapResponse> calendarConnection() {
+        return ((DbTransaction) () -> new UserFlow().getCalendarConnection()).read();
+    }
 }

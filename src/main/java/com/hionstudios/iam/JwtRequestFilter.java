@@ -20,6 +20,8 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.hionstudios.time.TimeUtil;
 
+import io.jsonwebtoken.Claims;
+
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
     @Autowired
@@ -54,7 +56,8 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                 if (cookie.getName().equals(JwtTokenUtil.TOKEN_NAME)) {
                     jwtToken = cookie.getValue();
                     if (jwtTokenUtil.getExpirationDateFromToken(jwtToken).getTime() > expiry) {
-                        username = jwtTokenUtil.getUsernameFromToken(jwtToken);
+                        Claims claims = jwtTokenUtil.getAllClaimsFromToken(jwtToken);
+                        username = claims.get("phone", String.class);
                     }
                 }
             }

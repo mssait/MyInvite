@@ -31,11 +31,11 @@ public class ChatFlow {
     }
 
     public MapResponse sendMessage(long id, String messageText) {
-        long senderId = 3;
-        // Long senderId = UserUtil.getUserid();
-        // if (senderId == null || senderId <= 0) {
-        // return MapResponse.failure("User not authenticated");
-        // }
+        // long senderId = 3;
+        Long senderId = UserUtil.getUserid();
+        if (senderId == null || senderId <= 0) {
+        return MapResponse.failure("User not authenticated");
+        }
 
         // Save the message to DB
         EventMessage message = new EventMessage();

@@ -50,7 +50,6 @@ public class UserFlow {
         user.set("name", name);
         user.set("email", email);
         user.set("phone_number", phone_number);
-        user.set("password", password);
         if (avatar != null) {
             user.set("profile_pic", avatar);
         }
@@ -158,4 +157,19 @@ public class UserFlow {
         MapResponse response = new MapResponse().put("dashboard", dashboard);
         return response;
     }
+
+    public MapResponse getCalendarConnection() {
+        long userId = UserUtil.getUserid();
+
+        String sql = "Select * From Google_Oauths Where User_Id = ?";
+
+        MapResponse userDetails = Handler.findFirst(sql, userId);
+
+        if (userDetails == null) {
+            return MapResponse.failure("false");
+        } else {
+            return MapResponse.success("true");
+        }
+    }
+
 }

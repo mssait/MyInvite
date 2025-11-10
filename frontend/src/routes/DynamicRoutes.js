@@ -3,6 +3,7 @@ import Logout from "../auth/Logout";
 import ForgotPassword from "../auth/ForgotPassword";
 import MinimalLayout from "../layout/MinimalLayout";
 import Event from "../admin/Event";
+import { CommingSoon } from "../views/CommingSoon";
 
 
 
@@ -12,6 +13,10 @@ const DynamicRoutes = {
     children: [
         {
             path: '',
+            element: <CommingSoon/>
+        },
+        {
+            path: '/login',
             element: <Login />
         },
         {
