@@ -55,8 +55,8 @@ public class EventController {
         return ((DbTransaction) () -> eventFlow.getCompletedEvents()).read();
     }
 
-    @GetMapping("{id}/details")
-    // @IsAdminAndUser
+    @GetMapping("{id}/details") 
+    @IsAdminAndUser
     @PermitAll
     public ResponseEntity<MapResponse> getEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> eventFlow.getEventDetails(id)).read();
@@ -99,7 +99,7 @@ public class EventController {
     }
 
     @PutMapping("{id}/edit")
-    // @IsUser
+    @IsUser
     public ResponseEntity<MapResponse> editEvent(
             @PathVariable Long id,
             @RequestParam(required = false) int event_type_id,
@@ -155,7 +155,7 @@ public class EventController {
     }
 
     @GetMapping("{id}/details/invited-to")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> getInvitedToEventDetails(@PathVariable Long id) {
         return ((DbTransaction) () -> eventFlow.getInvitedToEventDetails(id)).read();
     }
