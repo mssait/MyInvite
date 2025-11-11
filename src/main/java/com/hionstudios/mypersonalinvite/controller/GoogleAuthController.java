@@ -102,55 +102,55 @@ public class GoogleAuthController {
     }
 
     /** Step 3: Create event (example call) */
-    @PostMapping("/event")
-    public String createEvent(@RequestParam String userId) throws Exception {
-        // Retrieve user's stored credential (for demo, we’ll skip DB)
-        Credential credential = googleService.getStoredCredentials(userId);
+    // @PostMapping("/event")
+    // public String createEvent(@RequestParam String userId) throws Exception {
+    //     // Retrieve user's stored credential (for demo, we’ll skip DB)
+    //     Credential credential = googleService.getStoredCredentials(userId);
 
-        if (credential == null) {
-            // Fallback to DB
-            GoogleOauth oauth = GoogleOauth.findFirst("user_id = ?", userId);
-            if (oauth == null) {
-                return "No Google OAuth tokens found for user: " + userId;
-            }
-            credential = googleService.buildCredentialFromTokens(
-                    oauth.getString("access_token"),
-                    oauth.getString("refresh_token"),
-                    oauth.getLong("expiry"));
-        }
+    //     if (credential == null) {
+    //         // Fallback to DB
+    //         GoogleOauth oauth = GoogleOauth.findFirst("user_id = ?", userId);
+    //         if (oauth == null) {
+    //             return "No Google OAuth tokens found for user: " + userId;
+    //         }
+    //         credential = googleService.buildCredentialFromTokens(
+    //                 oauth.getString("access_token"),
+    //                 oauth.getString("refresh_token"),
+    //                 oauth.getLong("expiry"));
+    //     }
 
-        // Try refreshing if about to expire / expired and we have a refresh token
-        try {
-            Long secs = credential.getExpiresInSeconds();
-            if (secs == null || secs <= 60) { // nearly expired / unknown
-                if (credential.getRefreshToken() != null) {
-                    boolean refreshed = credential.refreshToken();
-                    if (refreshed) {
-                        // persist new tokens back to DB
-                        GoogleOauth oauth = GoogleOauth.findFirst("user_id = ?", userId);
-                        if (oauth != null) {
-                            oauth.set("access_token", credential.getAccessToken())
-                                    .set("refresh_token", credential.getRefreshToken()) // may or may not change
-                                    .set("expiry", credential.getExpirationTimeMilliseconds())
-                                    .saveIt();
-                        }
-                    }
-                }
-            }
-        } catch (Exception ignored) {
-            // If refresh fails, we still attempt with existing token; handle 401 upstream
-            // if needed
-        }
+    //     // Try refreshing if about to expire / expired and we have a refresh token
+    //     try {
+    //         Long secs = credential.getExpiresInSeconds();
+    //         if (secs == null || secs <= 60) { // nearly expired / unknown
+    //             if (credential.getRefreshToken() != null) {
+    //                 boolean refreshed = credential.refreshToken();
+    //                 if (refreshed) {
+    //                     // persist new tokens back to DB
+    //                     GoogleOauth oauth = GoogleOauth.findFirst("user_id = ?", userId);
+    //                     if (oauth != null) {
+    //                         oauth.set("access_token", credential.getAccessToken())
+    //                                 .set("refresh_token", credential.getRefreshToken()) // may or may not change
+    //                                 .set("expiry", credential.getExpirationTimeMilliseconds())
+    //                                 .saveIt();
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     } catch (Exception ignored) {
+    //         // If refresh fails, we still attempt with existing token; handle 401 upstream
+    //         // if needed
+    //     }
 
-        // Create event (demo values, replace as needed)
-        googleService.createCalendarEvent(
-                credential,
-                "My Invite - Demo Event",
-                "Event created via My Invite",
-                "2025-11-10T10:00:00+05:30",
-                "2025-11-10T11:00:00+05:30",
-                List.of("guest1@example.com", "guest2@example.com"));
+    //     // Create event (demo values, replace as needed)
+    //     googleService.createCalendarEvent(
+    //             credential,
+    //             "My Invite - Demo Event",
+    //             "Event created via My Invite",
+    //             "2025-11-10T10:00:00+05:30",
+    //             "2025-11-10T11:00:00+05:30",
+    //             List.of("guest1@example.com", "guest2@example.com"));
 
-        return "Event added to Google Calendar!";
-    }
+    //     return "Event added to Google Calendar!";
+    // }
 }

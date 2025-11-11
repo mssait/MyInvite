@@ -34,7 +34,7 @@ public class ChatFlow {
         // long senderId = 3;
         Long senderId = UserUtil.getUserid();
         if (senderId == null || senderId <= 0) {
-        return MapResponse.failure("User not authenticated");
+            return MapResponse.failure("User not authenticated");
         }
 
         // Save the message to DB
@@ -56,7 +56,7 @@ public class ChatFlow {
                         .map(inv -> inv.getLong("guest_id"))
                         .filter(guestId -> guestId != null && !guestId.equals(senderId))
                         .distinct()
-                        .toList());
+                        .collect(Collectors.toList()));
 
         Event event = Event.findById(id);
         if (event != null) {

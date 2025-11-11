@@ -35,30 +35,24 @@ CREATE TABLE USERS (
     PASSWORD_RESET_OTP_EXPIRY BIGINT
 );
 
-INSERT INTO USERS (TYPE_ID, NAME, EMAIL, PHONE_NUMBER, PASSWORD, PROFILE_PIC)
+INSERT INTO USERS (TYPE_ID, NAME, PHONE_NUMBER, PASSWORD)
 VALUES ( 
      1,
     'Sanjay',
-    'sanjay@hionstudios.com', 
     '7397541498',
-    'password',
-    'fgh5a5a9fdd661b51450faab7bc3e4056d8cd'
+    'password'
 ),
 ( 
      2,
-    'Eanok',
-    'eanok@hionstudios.com', 
+    'Sanjay',
     '7397541499',
-    'password',
-    'fgh5a35b55322c6af4c298eda5d437deb5507'
+    'password'
 ),
 ( 
      2,
     'Ganesh',
-    'ganesh@hionstudios.com', 
     '9092123295',
-    'password',
-    'fgh5a6bf50ddbc2044702a2a63828df227a6f'
+    'password'
 )
 ;
 
