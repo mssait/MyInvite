@@ -4,7 +4,7 @@ import App from "./App";
 
 const root = createRoot(document.querySelector('main'));
 root.render(
-  <BrowserRouter>
+  <BrowserRouter basename="/myinvite">
     <App />
   </BrowserRouter>
 );

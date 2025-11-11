@@ -1,5 +1,5 @@
 const config = {
-    basename: '',
+    basename: '/myinvite',
     defaultPath: '/',
     borderRadius: 8,
     name: 'Application Name',
