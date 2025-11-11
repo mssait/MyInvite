@@ -75,7 +75,7 @@ public class NotificationController {
     }
 
     @GetMapping("all")
-    @IsUser
+    // @IsUser
     public ResponseEntity<MapResponse> getUnreadNotifications() {
         return ((DbTransaction) () -> new NotificationFlow().getUserNotifications()).read();
     }
