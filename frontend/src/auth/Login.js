@@ -16,6 +16,7 @@ import fetcher from "../utils/fetcher";
 import { useQuery } from "../utils/useQuery";
 import { clearAuthLocalStorage, getHomePage, isLoggedIn } from "./AuthProvider";
 import { useSnackbar } from "notistack";
+import logo from "../images/logo-dark.png"
 import config from "../config";
 
 const Login = () => {
@@ -31,7 +32,7 @@ const Login = () => {
                 <Card elevation={2}>
                     <CardContent>
                         <Stack spacing={2} textAlign="center" justifyContent="center" alignItems={"center"}>
-                            <Box component={'img'} src="/logo-dark.png" sx={{ maxWidth: "30%", height: "auto", }} />
+                            <Box component={'img'} src={logo} sx={{ maxWidth: "30%", height: "auto", }} />
 
                             {/* <img
                                 style={{

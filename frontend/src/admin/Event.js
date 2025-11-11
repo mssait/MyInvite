@@ -12,6 +12,12 @@ import "slick-carousel/slick/slick-theme.css";
 import { useParams, useNavigate } from "react-router-dom";
 import fetcher from "../utils/fetcher";
 import { toImage, toDate, toTimeMillis, toTime } from "../utils/util";
+import logo from "../images/logo.png";
+import carpoolBanner from "../images/carpool_banner.png";
+import event_thumbnail1 from "../images/event_thumbnail1.png";
+import event_thumbnail2 from "../images/event_thumbnail2.png";
+import event_thumbnail3 from "../images/event_thumbnail3.png";
+
 
 // ---------- Utility Functions ----------
 const keepLastAddressParts = (address, count = 3) => {
@@ -41,7 +47,7 @@ const Navbar = () => (
             {/* Logo on the left */}
             <Box
                 component="img"
-                src="/logo.png"
+                src= {logo}
                 alt="Logo"
                 sx={{
                     height: { xs: 40, md: 60 },
@@ -359,7 +365,7 @@ export default function Event() {
 
     const images = event.thumbnails?.length > 0
         ? event.thumbnails.map(t => toImage(t.image))
-        : ["/Event_thumbnail1.png", "/Event_thumbnail2.png", "/Event_thumbnail3.png"];
+        : [{ event_thumbnail1 }, { event_thumbnail2 }, { event_thumbnail3 }].map(img => toImage(img));
 
 
     return (
@@ -549,7 +555,7 @@ export default function Event() {
                                 position: "relative",
                                 height: { xs: 140, sm: 200, md: 320, lg: 380 },
                                 mt: 3,
-                                backgroundImage: "url(/carpool_banner.png)",
+                                backgroundImage: `url(${carpoolBanner})`,
                                 backgroundSize: "cover",
                                 backgroundPosition: "center",
                                 display: "flex",

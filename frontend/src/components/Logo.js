@@ -1,4 +1,5 @@
 import config from "../config"
+import logo from "../images/logo.png"
 
 const Logo = () => (
     <img
@@ -9,7 +10,8 @@ const Logo = () => (
             display: "block",
             borderRadius: config.borderRadius
         }}
-        src="/logo.png" />
+        src={logo} />
 )
 
 export default Logo
+    
