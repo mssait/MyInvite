@@ -79,4 +79,4 @@ jobs:
           echo "Deploying $WAR to Tomcat at $TOMCAT_HOST"
           curl -v -su "${TOMCAT_USER}:${TOMCAT_PASSWORD}" \
             -T "$WAR" \
-            "http://${TOMCAT_HOST}/manager/text/deploy?path=/app&update=true"
+            "http://${TOMCAT_HOST}/manager/text/deploy?path=/myinvite&update=true"
